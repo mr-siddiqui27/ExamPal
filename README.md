@@ -1,175 +1,279 @@
-# ExamPal - AI-Powered Exam Companion
+# ExamPal - AI-Powered Exam Preparation Platform
 
-A modern, responsive web application designed to provide AI-powered assistance for exam preparation. Built with HTML, CSS, and JavaScript, featuring a clean interface that's ready for backend API integration.
+A comprehensive exam preparation platform that uses AI (Gemini API) to provide personalized study assistance for B.Tech Computer Science students.
 
-## 🚀 Features
+## ✨ Features
 
-### 1. College-Specific AI
-- **Smart Selection**: Choose from College, Subject, Module, and Topic dropdowns
-- **Multiple Options**: Get AI assistance for:
-  - 📚 Explanations
-  - 🧠 Quizzes
-  - ⭐ Important Questions/Topics
-  - 📜 Previous Year Questions
-  - 📄 Sample Papers
-- **Personalized Responses**: Tailored content based on your selections
+### 🎓 College-Specific AI Section
+- **Dynamic Syllabus Integration**: Automatically loads subjects, modules, and topics from JSON data
+- **Smart Dropdowns**: Module dropdown populates based on selected subject, topic suggestions appear as you type
+- **AI-Powered Responses**: Uses Google's Gemini API to generate comprehensive, exam-focused content
+- **Multiple Action Types**: Explanation, Quiz, Important Questions, Previous Year Questions, Sample Papers
 
-### 2. SmartPrep Assistant
-- **AI Chatbot**: Interactive chat interface for exam-related questions
-- **Real-time Responses**: Get instant help with your study queries
-- **Chat History**: Track your conversation history
-- **Smart Suggestions**: Context-aware responses based on your questions
+### 🤖 SmartPrep Assistant
+- **Chat Interface**: Interactive AI chat for general exam preparation questions
+- **File Upload Support**: Attach documents to get context-aware responses
+- **Real-time Responses**: Instant AI-generated answers to your queries
 
-### 3. Notes & Summaries
+### 📝 Notes & Summaries
 - **Text Input**: Paste or type your notes directly
-- **File Upload**: Support for various file formats (.txt, .doc, .docx, .pdf)
+- **File Upload**: Support for .txt, .doc, .docx, .pdf files
 - **AI Summarization**: Get concise summaries of your study materials
-- **Character Counter**: Track your input length
 
-### 4. Additional Features
-- **Dark Mode Toggle**: Switch between light and dark themes
-- **Responsive Design**: Works seamlessly on all device sizes
-- **Modern UI**: Clean, card-based design with smooth animations
-- **Navigation**: Easy switching between different sections
+## 🚀 Technology Stack
 
-## 🛠️ Technology Stack
+### Frontend
+- **HTML5**: Semantic markup and modern structure
+- **CSS3**: Custom properties, Flexbox, Grid, responsive design
+- **Vanilla JavaScript**: ES6+ classes, async/await, modern APIs
 
-- **Frontend**: HTML5, CSS3, Vanilla JavaScript (ES6+)
-- **Icons**: Font Awesome 6.0
-- **Styling**: CSS Custom Properties (CSS Variables)
-- **Responsiveness**: Mobile-first CSS Grid and Flexbox
-- **Theme**: Light/Dark mode with localStorage persistence
+### Backend
+- **Node.js**: Server-side JavaScript runtime
+- **Express.js**: Web application framework
+- **Google Gemini AI**: Advanced AI model for content generation
 
 ## 📁 Project Structure
 
 ```
 ExamPal/
-├── index.html              # Main HTML file
+├── index.html              # Main frontend file
 ├── css/
-│   └── styles.css         # Main stylesheet
+│   └── styles.css         # All styling and responsive design
 ├── js/
-│   └── app.js            # Main JavaScript application
-├── assets/
-│   └── README.md         # Assets documentation
-└── README.md             # Project documentation
+│   └── app.js            # Frontend JavaScript logic
+├── data/
+│   └── syllabus.json     # Subject, module, and topic data
+├── server.js             # Node.js backend server
+├── package.json          # Node.js dependencies
+└── README.md            # This file
 ```
 
-## 🚀 Getting Started
+## 🛠️ Setup Instructions
 
 ### Prerequisites
-- A modern web browser (Chrome, Firefox, Safari, Edge)
-- No server setup required - runs entirely in the browser
+- Node.js (v16 or higher)
+- npm or yarn
+- Google Gemini API key
 
-### Installation
-1. Clone or download the project files
-2. Open `index.html` in your web browser
-3. Start exploring the different sections!
-
-### Local Development
-For development purposes, you can use any local server:
-
+### 1. Clone and Install Dependencies
 ```bash
-# Using Python 3
-python -m http.server 8000
+# Install backend dependencies
+npm install
 
-# Using Node.js (if you have http-server installed)
-npx http-server
-
-# Using PHP
-php -S localhost:8000
+# Or if using yarn
+yarn install
 ```
 
-Then navigate to `http://localhost:8000` in your browser.
+### 2. Environment Configuration
+Create a `.env` file in the root directory:
+```env
+# Gemini API Configuration
+GEMINI_API_KEY=your_actual_gemini_api_key_here
+
+# Server Configuration
+PORT=3000
+NODE_ENV=development
+
+# CORS Configuration
+CORS_ORIGIN=http://localhost:5500
+```
+
+### 3. Get Gemini API Key
+1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Create a new API key
+3. Copy the key to your `.env` file
+
+### 4. Start the Backend Server
+```bash
+# Development mode (with auto-restart)
+npm run dev
+
+# Production mode
+npm start
+```
+
+The backend will start on `http://localhost:3000`
+
+### 5. Start the Frontend
+You can use any local server. For example:
+
+**Using Python:**
+```bash
+# Python 3
+python -m http.server 5500
+
+# Python 2
+python -m SimpleHTTPServer 5500
+```
+
+**Using Node.js:**
+```bash
+npx http-server -p 5500
+```
+
+**Using Live Server (VS Code extension):**
+- Install Live Server extension
+- Right-click on `index.html` → "Open with Live Server"
+
+The frontend will be available at `http://localhost:5500`
+
+## 🔧 API Endpoints
+
+### Backend API Routes
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/health` | GET | Server health check |
+| `/api/syllabus` | GET | Get complete syllabus data |
+| `/api/subjects/:subject/modules` | GET | Get modules for a subject |
+| `/api/subjects/:subject/modules/:module/topics` | GET | Get topics for a module |
+| `/api/subject-request` | POST | Submit AI request (main endpoint) |
+
+### API Request Format
+```json
+{
+  "college": "bbd-university",
+  "subject": "dbms",
+  "module": "Module 2",
+  "topic": "Normalization",
+  "action": "explanation"
+}
+```
+
+### API Response Format
+```json
+{
+  "success": true,
+  "response": "AI-generated content...",
+  "request": {
+    "subject": "dbms",
+    "module": "Module 2",
+    "topic": "Normalization",
+    "action": "explanation",
+    "college": "bbd-university"
+  }
+}
+```
+
+## 📚 Syllabus Data Structure
+
+The `data/syllabus.json` file contains a hierarchical structure:
+
+```json
+{
+  "subject-key": {
+    "Module 1": ["Topic 1", "Topic 2", "Topic 3"],
+    "Module 2": ["Topic 4", "Topic 5", "Topic 6"]
+  }
+}
+```
+
+### Available Subjects
+- C Programming
+- Data Structures
+- Algorithms
+- Operating Systems
+- Database Management System (DBMS)
+- Computer Networks
+- Software Engineering
+- Artificial Intelligence
+- Machine Learning
+- Compiler Design
+- Web Development
+- Java Programming
+- Python Programming
+- Theory of Computation
+- Computer Organization & Architecture
+- Cyber Security
+- Cloud Computing
+- Data Science
+- Discrete Mathematics
+- Probability & Statistics
+- Linear Algebra
+- Communication Skills
+- Professional English
 
 ## 🎨 Customization
 
-### Colors and Themes
-The application uses CSS custom properties for easy theming. Modify the `:root` section in `css/styles.css` to change colors:
+### Adding New Subjects
+1. Edit `data/syllabus.json`
+2. Add your subject with modules and topics
+3. The frontend will automatically detect and display new subjects
 
-```css
-:root {
-    --primary-color: #6366f1;    /* Main brand color */
-    --bg-primary: #ffffff;       /* Background color */
-    --text-primary: #1e293b;     /* Text color */
-    /* ... more variables */
-}
-```
-
-### Adding New Features
-The JavaScript is structured in a class-based architecture, making it easy to extend:
+### Modifying AI Prompts
+Edit the prompt template in `server.js` around line 80:
 
 ```javascript
-class ExamPal {
-    // Add new methods here
-    newFeature() {
-        // Your new functionality
-    }
-}
+const prompt = `Your custom prompt template here...`;
 ```
 
-## 🔌 Backend Integration Ready
+### Styling Changes
+- Modify `css/styles.css` for visual changes
+- Use CSS custom properties for theme customization
+- Responsive breakpoints are defined for mobile, tablet, and desktop
 
-The frontend is designed to easily connect with backend APIs:
+## 🌐 Browser Support
 
-### API Endpoints Structure
-- **College AI**: `/api/college-ai` - POST with college, subject, module, topic, option
-- **Chat**: `/api/chat` - POST with message, GET for history
-- **Notes**: `/api/summarize` - POST with notes text or file
-
-### Data Flow
-1. User selects options in the frontend
-2. Frontend validates input
-3. Frontend makes API calls to backend
-4. Backend processes with AI models
-5. Frontend displays results
-
-## 📱 Responsive Design
-
-The application is fully responsive with breakpoints at:
-- **Desktop**: 1200px and above
-- **Tablet**: 768px - 1199px
-- **Mobile**: 480px - 767px
-- **Small Mobile**: Below 480px
-
-## 🌙 Dark Mode
-
-- Toggle between light and dark themes
-- Theme preference is saved in localStorage
-- Automatic theme switching with smooth transitions
-
-## 🔒 Browser Support
-
-- **Modern Browsers**: Chrome 80+, Firefox 75+, Safari 13+, Edge 80+
-- **Features Used**: CSS Grid, Flexbox, CSS Variables, ES6 Classes
+- **Modern Browsers**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+- **Features**: ES6 modules, async/await, CSS Grid, Flexbox
 - **Fallbacks**: Graceful degradation for older browsers
 
-## 🚧 Current Status
+## 🔒 Security Features
 
-### ✅ Completed
-- Complete frontend UI implementation
-- Responsive design for all screen sizes
-- Dark mode toggle with persistence
-- Interactive form handling
-- Chat interface with placeholder responses
-- Notes summarization interface
-- File upload interface
-- Navigation between sections
-- Form validation
-- Notification system
+- CORS protection
+- Input validation
+- Error handling
+- Environment variable protection
+- Rate limiting (can be added)
 
-### 🔄 Placeholder Content
-- AI responses are currently placeholder text
-- Chat responses are simulated
-- Notes summarization shows sample output
-- File processing is simulated
+## 🚧 Development Notes
 
-### 🚀 Next Steps
-- Connect to backend AI services
-- Implement real API calls
-- Add user authentication
-- Database integration for chat history
-- File processing and storage
-- Real-time chat capabilities
+### Frontend Development
+- The app uses a class-based architecture (`ExamPal` class)
+- Event-driven programming with proper cleanup
+- Responsive design with mobile-first approach
+- Dark mode support with localStorage persistence
+
+### Backend Development
+- RESTful API design
+- Proper error handling and logging
+- Environment-based configuration
+- CORS enabled for development
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Backend won't start:**
+- Check if port 3000 is available
+- Verify `.env` file exists with correct API key
+- Ensure all dependencies are installed
+
+**Frontend can't connect to backend:**
+- Verify backend is running on port 3000
+- Check CORS configuration in `.env`
+- Ensure frontend is running on port 5500
+
+**Gemini API errors:**
+- Verify API key is correct
+- Check API quota and limits
+- Ensure internet connection is stable
+
+**Module/Topic dropdowns not working:**
+- Check browser console for errors
+- Verify `syllabus.json` is properly formatted
+- Ensure backend `/api/syllabus` endpoint is accessible
+
+## 📈 Future Enhancements
+
+- [ ] User authentication and profiles
+- [ ] Progress tracking and analytics
+- [ ] Offline mode support
+- [ ] Multiple AI model support
+- [ ] Study schedule planning
+- [ ] Collaborative study groups
+- [ ] Mobile app development
+- [ ] Advanced analytics dashboard
 
 ## 🤝 Contributing
 
@@ -181,25 +285,22 @@ The application is fully responsive with breakpoints at:
 
 ## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE).
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🆘 Support
+## 👨‍💻 Developer
 
-If you encounter any issues or have questions:
-1. Check the browser console for errors
-2. Ensure all files are in the correct directory structure
-3. Verify that your browser supports the required features
+**Mojammil Husain**
+- Project: ExamPal
+- Version: 2.0.0
+- Last Updated: 2025
 
-## 🔮 Future Enhancements
+## 📞 Support
 
-- **User Accounts**: Login/signup system
-- **Progress Tracking**: Study progress and analytics
-- **Collaborative Features**: Study groups and sharing
-- **Offline Support**: Service worker for offline functionality
-- **Mobile App**: React Native or PWA version
-- **AI Models**: Integration with GPT, Claude, or custom models
-- **Analytics**: User behavior and performance tracking
+For support and questions:
+- Create an issue in the repository
+- Check the troubleshooting section above
+- Review the API documentation
 
 ---
 
-**Built with ❤️ for students and educators worldwide**
+**Happy Studying! 🎓✨**

@@ -1,0 +1,23 @@
+{
+  "c-programming": {
+    "Module 1": ["Introduction to C Programming", "Basic Structure", "Data Types", "Operators", "I/O Functions"],
+    "Module 2": ["Control Structures", "Decision Making", "Loops", "Break/Continue", "Switch Case"],
+    "Module 3": ["Functions", "Declaration", "Parameters", "Recursion", "Storage Classes"],
+    "Module 4": ["Arrays", "1D Arrays", "2D Arrays", "Character Arrays", "Array Parameters"],
+    "Module 5": ["Pointers", "Pointer Basics", "Pointers and Arrays", "Pointers and Functions", "Memory Allocation"]
+  },
+  "dbms": {
+    "Module 1": ["Introduction to DBMS", "Database Concepts", "Data Models", "ER Model", "Database Design"],
+    "Module 2": ["Relational Model", "Relational Algebra", "SQL Basics", "Normalization", "Keys and Constraints"],
+    "Module 3": ["SQL Advanced", "Complex Queries", "Joins", "Aggregate Functions", "Views and Indexes"],
+    "Module 4": ["Transaction Management", "ACID Properties", "Concurrency Control", "Locking", "Deadlock Handling"],
+    "Module 5": ["Database Security", "Authorization", "Backup and Recovery", "Distributed Databases", "NoSQL"]
+  },
+  "data-structures": {
+    "Module 1": ["Introduction to DS", "Linear Structures", "Abstract Data Types", "Algorithm Analysis", "Complexity"],
+    "Module 2": ["Arrays and Lists", "Array Operations", "Singly Linked Lists", "Doubly Linked Lists", "Circular Lists"],
+    "Module 3": ["Stacks and Queues", "Stack Implementation", "Queue Implementation", "Circular Queue", "Priority Queue"],
+    "Module 4": ["Trees", "Binary Trees", "Binary Search Trees", "AVL Trees", "Tree Traversals"],
+    "Module 5": ["Graphs and Sorting", "Graph Representation", "Graph Traversals", "Sorting Algorithms", "Searching"]
+  }
+}

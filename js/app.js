@@ -5,14 +5,18 @@ class ExamPal {
         this.selectedOption = null;
         this.chatHistory = [];
         this.chatFile = null;
+        this.syllabus = null;
+        this.apiBaseUrl = 'http://localhost:3000/api';
         this.init();
     }
 
-    init() {
+    async init() {
         this.setupEventListeners();
         this.loadTheme();
         this.setupChat();
         this.setupFormValidation();
+        await this.loadSyllabus();
+        this.setupDynamicDropdowns();
     }
 
     setupEventListeners() {
@@ -73,6 +77,11 @@ class ExamPal {
 
         document.getElementById('chatFileRemove').addEventListener('click', () => {
             this.removeChatFile();
+        });
+
+        // Debug button
+        document.getElementById('debugBtn').addEventListener('click', () => {
+            this.debugConnection();
         });
     }
 
@@ -138,12 +147,44 @@ class ExamPal {
         }
     }
 
-    generateCollegeAIResponse() {
+    formatAIResponse(aiResponse, college, subject, module, topic, action) {
+        // Format college name for display
+        const collegeDisplay = college === 'bbd-university' ? 'BBD University' : 
+                              college === 'aktu' ? 'AKTU' : college;
+        
+        // Format subject name for display
+        const subjectDisplay = subject.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        
+        // Format action for display
+        const actionDisplay = action.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+        return `
+            <div class="ai-response">
+                <div class="response-header">
+                    <h4>🤖 AI Response: ${actionDisplay}</h4>
+                    <div class="request-details">
+                        <p><strong>College:</strong> ${collegeDisplay}</p>
+                        <p><strong>Subject:</strong> ${subjectDisplay}</p>
+                        ${module ? `<p><strong>Module:</strong> ${module}</p>` : ''}
+                        ${topic ? `<p><strong>Topic:</strong> ${topic}</p>` : ''}
+                    </div>
+                </div>
+                <hr>
+                <div class="response-content">
+                    ${aiResponse.replace(/\n/g, '<br>')}
+                </div>
+            </div>
+        `;
+    }
+
+    async generateCollegeAIResponse() {
         const college = document.getElementById('college').value;
         const subject = document.getElementById('subject').value;
         const module = document.getElementById('module').value;
-        const topic = document.getElementById('topic').value;
+        const topic = document.getElementById('topicInput').value;
         const option = this.selectedOption;
+
+        console.log('Generating AI response with:', { college, subject, module, topic, option });
 
         // Show loading state
         const outputCard = document.getElementById('collegeOutput');
@@ -152,11 +193,68 @@ class ExamPal {
         outputCard.style.display = 'block';
         outputContent.innerHTML = '<div class="loading-placeholder">Generating AI response...</div>';
 
-        // Simulate API call delay
-        setTimeout(() => {
-            const response = this.getPlaceholderResponse(college, subject, module, topic, option);
-            outputContent.innerHTML = response;
-        }, 1500);
+        try {
+            // Call the backend API
+            const response = await fetch(`${this.apiBaseUrl}/subject-request`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    college,
+                    subject,
+                    module,
+                    topic,
+                    action: option
+                })
+            });
+
+            console.log('Backend response status:', response.status);
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Backend response data:', data);
+                
+                if (data.success && data.response) {
+                    const formattedResponse = this.formatAIResponse(data.response, college, subject, module, topic, option);
+                    outputContent.innerHTML = formattedResponse;
+                } else {
+                    outputContent.innerHTML = `
+                        <div class="error-message">
+                            <h4>❌ Invalid Response Format</h4>
+                            <p><strong>Error:</strong> Backend returned invalid response format</p>
+                            <p><em>Response data: ${JSON.stringify(data)}</em></p>
+                        </div>
+                    `;
+                }
+            } else {
+                let errorMessage = 'Failed to generate response';
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || errorMessage;
+                } catch (e) {
+                    errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                }
+                
+                outputContent.innerHTML = `
+                    <div class="error-message">
+                        <h4>❌ Error Generating Response</h4>
+                        <p><strong>Error:</strong> ${errorMessage}</p>
+                        <p><em>Please try again or check your internet connection.</em></p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error calling API:', error);
+            outputContent.innerHTML = `
+                <div class="error-message">
+                    <h4>❌ Connection Error</h4>
+                    <p><strong>Error:</strong> Failed to connect to the server</p>
+                    <p><em>Please make sure the backend server is running on port 3000.</em></p>
+                    <p><em>Error details: ${error.message}</em></p>
+                </div>
+            `;
+        }
     }
 
     getPlaceholderResponse(college, subject, module, topic, option) {
@@ -472,6 +570,174 @@ class ExamPal {
             notification.classList.remove('show');
             setTimeout(() => notification.remove(), 300);
         }, 5000);
+    }
+
+    async loadSyllabus() {
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/syllabus`);
+            if (response.ok) {
+                this.syllabus = await response.json();
+                console.log('Syllabus loaded successfully');
+            } else {
+                console.error('Failed to load syllabus');
+            }
+        } catch (error) {
+            console.error('Error loading syllabus:', error);
+        }
+    }
+
+    setupDynamicDropdowns() {
+        const subjectSelect = document.getElementById('subject');
+        const moduleSelect = document.getElementById('module');
+        const topicInput = document.getElementById('topicInput');
+        const topicList = document.getElementById('topicList');
+        const topicSuggestions = document.getElementById('topicSuggestions');
+
+        // Subject change handler
+        subjectSelect.addEventListener('change', () => {
+            const selectedSubject = subjectSelect.value;
+            
+            // Reset module and topic
+            moduleSelect.innerHTML = '<option value="">Select Module</option>';
+            topicInput.value = '';
+            topicList.innerHTML = '<option value="">Select Topic</option>';
+            
+            if (selectedSubject && this.syllabus[selectedSubject]) {
+                // Enable module dropdown and populate it
+                moduleSelect.disabled = false;
+                const modules = Object.keys(this.syllabus[selectedSubject]);
+                modules.forEach(module => {
+                    const option = document.createElement('option');
+                    option.value = module;
+                    option.textContent = module;
+                    moduleSelect.appendChild(option);
+                });
+            } else {
+                moduleSelect.disabled = true;
+            }
+        });
+
+        // Module change handler
+        moduleSelect.addEventListener('change', () => {
+            const selectedSubject = subjectSelect.value;
+            const selectedModule = moduleSelect.value;
+            
+            // Reset topic
+            topicInput.value = '';
+            topicList.innerHTML = '<option value="">Select Topic</option>';
+            
+            if (selectedModule && this.syllabus[selectedSubject]?.[selectedModule]) {
+                // Populate topic datalist
+                const topics = this.syllabus[selectedSubject][selectedModule];
+                topics.forEach(topic => {
+                    const option = document.createElement('option');
+                    option.value = topic;
+                    option.textContent = topic;
+                    topicList.appendChild(option);
+                });
+            }
+        });
+
+        // Topic input handler with suggestions
+        topicInput.addEventListener('input', () => {
+            const query = topicInput.value.toLowerCase();
+            const selectedSubject = subjectSelect.value;
+            const selectedModule = moduleSelect.value;
+            
+            if (query.length < 2) {
+                topicSuggestions.style.display = 'none';
+                return;
+            }
+
+            if (selectedSubject && selectedModule && this.syllabus[selectedSubject]?.[selectedModule]) {
+                const topics = this.syllabus[selectedSubject][selectedModule];
+                const filteredTopics = topics.filter(topic => 
+                    topic.toLowerCase().includes(query)
+                );
+
+                if (filteredTopics.length > 0) {
+                    topicSuggestions.innerHTML = '';
+                    filteredTopics.forEach(topic => {
+                        const item = document.createElement('div');
+                        item.className = 'topic-suggestion-item';
+                        item.textContent = topic;
+                        item.addEventListener('click', () => {
+                            topicInput.value = topic;
+                            topicSuggestions.style.display = 'none';
+                        });
+                        topicSuggestions.appendChild(item);
+                    });
+                    topicSuggestions.style.display = 'block';
+                } else {
+                    topicSuggestions.style.display = 'none';
+                }
+            }
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!topicInput.contains(e.target) && !topicSuggestions.contains(e.target)) {
+                topicSuggestions.style.display = 'none';
+            }
+        });
+    }
+
+    async debugConnection() {
+        const debugCard = document.getElementById('debugCard');
+        const debugContent = document.getElementById('debugContent');
+        
+        debugCard.style.display = 'block';
+        debugContent.innerHTML = '<div class="loading-placeholder">Testing connection...</div>';
+
+        try {
+            // Test backend health
+            const healthResponse = await fetch(`${this.apiBaseUrl}/health`);
+            const healthData = await healthResponse.json();
+            
+            // Test Gemini API
+            const geminiResponse = await fetch(`${this.apiBaseUrl}/test-gemini`);
+            const geminiData = await geminiResponse.json();
+
+            const debugInfo = `
+                <div class="debug-info">
+                    <h4>🔍 Connection Test Results</h4>
+                    
+                    <h5>Backend Health:</h5>
+                    <ul>
+                        <li><strong>Status:</strong> ${healthData.status}</li>
+                        <li><strong>Message:</strong> ${healthData.message}</li>
+                        <li><strong>Gemini Configured:</strong> ${healthData.gemini?.configured ? '✅ Yes' : '❌ No'}</li>
+                        <li><strong>Gemini Initialized:</strong> ${healthData.gemini?.initialized ? '✅ Yes' : '❌ No'}</li>
+                    </ul>
+                    
+                    <h5>Gemini API Test:</h5>
+                    <ul>
+                        <li><strong>Status:</strong> ${geminiResponse.ok ? '✅ Success' : '❌ Failed'}</li>
+                        <li><strong>Response:</strong> ${geminiData.success ? '✅ Working' : '❌ Error'}</li>
+                        ${geminiData.response ? `<li><strong>Test Response:</strong> ${geminiData.response}</li>` : ''}
+                        ${geminiData.error ? `<li><strong>Error:</strong> ${geminiData.error}</li>` : ''}
+                    </ul>
+                    
+                    <h5>Frontend Configuration:</h5>
+                    <ul>
+                        <li><strong>API Base URL:</strong> ${this.apiBaseUrl}</li>
+                        <li><strong>Syllabus Loaded:</strong> ${this.syllabus ? '✅ Yes' : '❌ No'}</li>
+                        <li><strong>Subjects Available:</strong> ${this.syllabus ? Object.keys(this.syllabus).length : 0}</li>
+                    </ul>
+                </div>
+            `;
+            
+            debugContent.innerHTML = debugInfo;
+            
+        } catch (error) {
+            debugContent.innerHTML = `
+                <div class="error-message">
+                    <h4>❌ Debug Test Failed</h4>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><em>Please check if the backend server is running on port 3000.</em></p>
+                </div>
+            `;
+        }
     }
 
     setupFormValidation() {
