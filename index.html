@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExamPal - Your AI-Powered Exam Companion</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-graduation-cap"></i>
+                <span>ExamPal</span>
+            </div>
+            <div class="nav-links">
+                <a href="#college-ai" class="nav-link active" data-section="college-ai">
+                    <i class="fas fa-university"></i>
+                    College AI
+                </a>
+                <a href="#smartprep" class="nav-link" data-section="smartprep">
+                    <i class="fas fa-robot"></i>
+                    SmartPrep Assistant
+                </a>
+                <a href="#notes" class="nav-link" data-section="notes">
+                    <i class="fas fa-sticky-note"></i>
+                    Notes & Summaries
+                </a>
+            </div>
+            <div class="nav-controls">
+                <button class="dark-mode-toggle" id="darkModeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- College-Specific AI Section -->
+        <section id="college-ai" class="section active">
+            <div class="container">
+                <div class="section-header">
+                    <h1><i class="fas fa-university"></i> College-Specific AI</h1>
+                    <p>Get personalized AI assistance based on your college, subject, and specific topics</p>
+                </div>
+                
+                <div class="card">
+                    <div class="form-group">
+                        <label for="college">College *</label>
+                        <select id="college" required>
+                            <option value="">Select College</option>
+                            <option value="bbd-university">BBD University</option>
+                            <option value="aktu">AKTU</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="subject">Subject *</label>
+                        <select id="subject" required>
+                            <option value="">Select Subject</option>
+                            <option value="c-programming">C Programming</option>
+                            <option value="data-structures">Data Structures</option>
+                            <option value="algorithms">Algorithms</option>
+                            <option value="operating-systems">Operating Systems</option>
+                            <option value="dbms">Database Management System (DBMS)</option>
+                            <option value="computer-networks">Computer Networks</option>
+                            <option value="software-engineering">Software Engineering</option>
+                            <option value="artificial-intelligence">Artificial Intelligence</option>
+                            <option value="machine-learning">Machine Learning</option>
+                            <option value="compiler-design">Compiler Design</option>
+                            <option value="web-development">Web Development</option>
+                            <option value="java-programming">Java Programming</option>
+                            <option value="python-programming">Python Programming</option>
+                            <option value="theory-of-computation">Theory of Computation</option>
+                            <option value="computer-organization">Computer Organization & Architecture</option>
+                            <option value="cyber-security">Cyber Security</option>
+                            <option value="cloud-computing">Cloud Computing</option>
+                            <option value="data-science">Data Science</option>
+                            <option value="mathematics">Mathematics (Discrete Math, Probability & Statistics, Linear Algebra)</option>
+                            <option value="communication-skills">Communication Skills / Professional English</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="module">Module (Optional)</label>
+                        <select id="module">
+                            <option value="">Select Module</option>
+                            <option value="module1">Module 1</option>
+                            <option value="module2">Module 2</option>
+                            <option value="module3">Module 3</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="topic">Topic (Optional)</label>
+                        <select id="topic">
+                            <option value="">Select Topic</option>
+                            <option value="topic1">Topic 1</option>
+                            <option value="topic2">Topic 2</option>
+                            <option value="topic3">Topic 3</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Choose Option *</label>
+                        <div class="option-buttons">
+                            <button class="option-btn" data-option="explanation">
+                                <i class="fas fa-lightbulb"></i>
+                                Explanation
+                            </button>
+                            <button class="option-btn" data-option="quiz">
+                                <i class="fas fa-question-circle"></i>
+                                Quiz
+                            </button>
+                            <button class="option-btn" data-option="important">
+                                <i class="fas fa-star"></i>
+                                Important Questions/Topics
+                            </button>
+                            <button class="option-btn" data-option="previous">
+                                <i class="fas fa-history"></i>
+                                Previous Year Questions
+                            </button>
+                            <button class="option-btn" data-option="sample">
+                                <i class="fas fa-file-alt"></i>
+                                Sample Papers
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card output-card" id="collegeOutput" style="display: none;">
+                    <h3>AI Response</h3>
+                    <div class="output-content" id="collegeOutputContent">
+                        <!-- AI response will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SmartPrep Assistant Section -->
+        <section id="smartprep" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h1><i class="fas fa-robot"></i> SmartPrep Assistant</h1>
+                    <p>Your all-rounder AI companion for exam preparation</p>
+                </div>
+                
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message bot-message">
+                            <div class="message-content">
+                                <i class="fas fa-robot"></i>
+                                <p>Hello! I'm your SmartPrep Assistant. How can I help you with your exam preparation today?</p>
+                            </div>
+                            <div class="message-time">Just now</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-input-container">
+                        <div class="chat-file-upload">
+                            <input type="file" id="chatFileUpload" accept=".txt,.doc,.docx,.pdf">
+                            <label for="chatFileUpload" class="chat-file-upload-label">
+                                <i class="fas fa-paperclip"></i>
+                                <span>Attach File</span>
+                            </label>
+                            <span class="chat-file-name" id="chatFileName" style="display: none;"></span>
+                            <button class="chat-file-remove" id="chatFileRemove" style="display: none;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="chat-input-wrapper">
+                            <input type="text" id="chatInput" placeholder="Ask me anything about exam preparation..." maxlength="500">
+                            <button id="sendMessage" class="send-btn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <div class="input-counter">
+                            <span id="charCount">0</span>/500
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Notes & Summaries Section -->
+        <section id="notes" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h1><i class="fas fa-sticky-note"></i> Notes & Summaries</h1>
+                    <p>Upload your notes and get AI-powered summaries</p>
+                </div>
+                
+                <div class="card">
+                    <div class="form-group">
+                        <label for="notesText">Your Notes</label>
+                        <textarea id="notesText" placeholder="Paste your notes here or type them directly..." rows="8"></textarea>
+                        <div class="notes-counter">
+                            <span id="notesCharCount">0</span> characters
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Or Upload File</label>
+                        <div class="file-upload">
+                            <input type="file" id="fileUpload" accept=".txt,.doc,.docx,.pdf">
+                            <label for="fileUpload" class="file-upload-label">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>Choose a file or drag it here</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" id="summarizeBtn">
+                        <i class="fas fa-magic"></i>
+                        Summarize Notes
+                    </button>
+                </div>
+                
+                <div class="card output-card" id="notesOutput" style="display: none;">
+                    <h3>AI Summary</h3>
+                    <div class="output-content" id="notesOutputContent">
+                        <!-- Summary will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 ExamPal. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
