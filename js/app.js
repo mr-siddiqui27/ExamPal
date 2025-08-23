@@ -158,6 +158,44 @@ class ExamPal {
         // Format action for display
         const actionDisplay = action.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
+        // Format the AI response with better markdown to HTML conversion
+        let formattedResponse = aiResponse;
+        
+        // Convert markdown-style formatting to proper HTML
+        formattedResponse = formattedResponse
+            // Headings (## Heading -> <h3>Heading</h3>)
+            .replace(/^##\s+(.+)$/gm, '<h3>$1</h3>')
+            .replace(/^###\s+(.+)$/gm, '<h4>$1</h4>')
+            .replace(/^####\s+(.+)$/gm, '<h5>$1</h5>')
+            .replace(/^#\s+(.+)$/gm, '<h2>$1</h2>')
+            
+            // Bold and italic text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            
+            // Code blocks
+            .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>')
+            .replace(/`([^`]+)`/g, '<code>$1</code>')
+            
+            // Lists
+            .replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>')
+            .replace(/^-\s+(.+)$/gm, '<li>$1</li>')
+            .replace(/^•\s+(.+)$/gm, '<li>$1</li>')
+            
+            // Line breaks and paragraphs
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\n/g, '<br>');
+        
+        // Wrap lists properly
+        formattedResponse = formattedResponse
+            .replace(/(<li>.*<\/li>)/gs, '<ol>$1</ol>')
+            .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+        
+        // Clean up multiple line breaks
+        formattedResponse = formattedResponse
+            .replace(/<br><br>/g, '</p><p>')
+            .replace(/<\/p><p><\/p>/g, '</p><p>');
+
         return `
             <div class="ai-response">
                 <div class="response-header">
@@ -171,7 +209,7 @@ class ExamPal {
                 </div>
                 <hr>
                 <div class="response-content">
-                    ${aiResponse.replace(/\n/g, '<br>')}
+                    ${formattedResponse}
                 </div>
             </div>
         `;
@@ -649,15 +687,33 @@ class ExamPal {
                 return;
             }
 
-            if (selectedSubject && selectedModule && this.syllabus[selectedSubject]?.[selectedModule]) {
-                const topics = this.syllabus[selectedSubject][selectedModule];
-                const filteredTopics = topics.filter(topic => 
+            let allTopics = [];
+            
+            if (selectedSubject && this.syllabus[selectedSubject]) {
+                if (selectedModule) {
+                    // If module is selected, show topics from that module
+                    if (this.syllabus[selectedSubject][selectedModule]) {
+                        allTopics = this.syllabus[selectedSubject][selectedModule];
+                    }
+                } else {
+                    // If no module selected, show topics from ALL modules
+                    Object.values(this.syllabus[selectedSubject]).forEach(moduleTopics => {
+                        allTopics = allTopics.concat(moduleTopics);
+                    });
+                }
+            }
+
+            if (allTopics.length > 0) {
+                const filteredTopics = allTopics.filter(topic => 
                     topic.toLowerCase().includes(query)
                 );
 
                 if (filteredTopics.length > 0) {
                     topicSuggestions.innerHTML = '';
-                    filteredTopics.forEach(topic => {
+                    // Remove duplicates and limit suggestions
+                    const uniqueTopics = [...new Set(filteredTopics)].slice(0, 10);
+                    
+                    uniqueTopics.forEach(topic => {
                         const item = document.createElement('div');
                         item.className = 'topic-suggestion-item';
                         item.textContent = topic;
@@ -670,6 +726,40 @@ class ExamPal {
                     topicSuggestions.style.display = 'block';
                 } else {
                     topicSuggestions.style.display = 'none';
+                }
+            }
+        });
+
+        // Show all topics when topic input is focused (if no module selected)
+        topicInput.addEventListener('focus', () => {
+            const selectedSubject = subjectSelect.value;
+            const selectedModule = moduleSelect.value;
+            
+            if (selectedSubject && !selectedModule && topicInput.value === '') {
+                // Show all topics from all modules when no module is selected
+                let allTopics = [];
+                if (this.syllabus[selectedSubject]) {
+                    Object.values(this.syllabus[selectedSubject]).forEach(moduleTopics => {
+                        allTopics = allTopics.concat(moduleTopics);
+                    });
+                }
+                
+                // Remove duplicates and limit suggestions
+                const uniqueTopics = [...new Set(allTopics)].slice(0, 15);
+                
+                if (uniqueTopics.length > 0) {
+                    topicSuggestions.innerHTML = '';
+                    uniqueTopics.forEach(topic => {
+                        const item = document.createElement('div');
+                        item.className = 'topic-suggestion-item';
+                        item.textContent = topic;
+                        item.addEventListener('click', () => {
+                            topicInput.value = topic;
+                            topicSuggestions.style.display = 'none';
+                        });
+                        topicSuggestions.appendChild(item);
+                    });
+                    topicSuggestions.style.display = 'block';
                 }
             }
         });

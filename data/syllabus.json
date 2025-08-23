@@ -1,23 +1,122 @@
 {
   "c-programming": {
-    "Module 1": ["Introduction to C Programming", "Basic Structure", "Data Types", "Operators", "I/O Functions"],
-    "Module 2": ["Control Structures", "Decision Making", "Loops", "Break/Continue", "Switch Case"],
-    "Module 3": ["Functions", "Declaration", "Parameters", "Recursion", "Storage Classes"],
-    "Module 4": ["Arrays", "1D Arrays", "2D Arrays", "Character Arrays", "Array Parameters"],
-    "Module 5": ["Pointers", "Pointer Basics", "Pointers and Arrays", "Pointers and Functions", "Memory Allocation"]
-  },
-  "dbms": {
-    "Module 1": ["Introduction to DBMS", "Database Concepts", "Data Models", "ER Model", "Database Design"],
-    "Module 2": ["Relational Model", "Relational Algebra", "SQL Basics", "Normalization", "Keys and Constraints"],
-    "Module 3": ["SQL Advanced", "Complex Queries", "Joins", "Aggregate Functions", "Views and Indexes"],
-    "Module 4": ["Transaction Management", "ACID Properties", "Concurrency Control", "Locking", "Deadlock Handling"],
-    "Module 5": ["Database Security", "Authorization", "Backup and Recovery", "Distributed Databases", "NoSQL"]
+    "Module 1": ["Introduction to C", "Basic Syntax", "Variables and Data Types", "Operators", "Input/Output Functions"],
+    "Module 2": ["Control Structures", "If-else Statements", "Loops", "Switch Case", "Break and Continue"],
+    "Module 3": ["Functions", "Function Declaration", "Parameters and Arguments", "Recursion", "Scope and Lifetime"],
+    "Module 4": ["Arrays and Strings", "1D and 2D Arrays", "String Functions", "Pointers Basics", "File Handling"]
   },
   "data-structures": {
-    "Module 1": ["Introduction to DS", "Linear Structures", "Abstract Data Types", "Algorithm Analysis", "Complexity"],
-    "Module 2": ["Arrays and Lists", "Array Operations", "Singly Linked Lists", "Doubly Linked Lists", "Circular Lists"],
-    "Module 3": ["Stacks and Queues", "Stack Implementation", "Queue Implementation", "Circular Queue", "Priority Queue"],
-    "Module 4": ["Trees", "Binary Trees", "Binary Search Trees", "AVL Trees", "Tree Traversals"],
-    "Module 5": ["Graphs and Sorting", "Graph Representation", "Graph Traversals", "Sorting Algorithms", "Searching"]
+    "Module 1": ["Introduction to Data Structures", "Arrays", "Linked Lists", "Stacks", "Queues"],
+    "Module 2": ["Trees", "Binary Trees", "Binary Search Trees", "AVL Trees", "Tree Traversals"],
+    "Module 3": ["Graphs", "Graph Representation", "Graph Traversals", "Shortest Path", "Minimum Spanning Tree"],
+    "Module 4": ["Sorting Algorithms", "Bubble Sort", "Quick Sort", "Merge Sort", "Heap Sort"]
+  },
+  "algorithms": {
+    "Module 1": ["Algorithm Analysis", "Time Complexity", "Space Complexity", "Big O Notation", "Algorithm Design"],
+    "Module 2": ["Divide and Conquer", "Merge Sort", "Quick Sort", "Binary Search", "Strassen's Algorithm"],
+    "Module 3": ["Dynamic Programming", "Fibonacci", "Longest Common Subsequence", "Knapsack Problem", "Matrix Chain Multiplication"],
+    "Module 4": ["Greedy Algorithms", "Huffman Coding", "Dijkstra's Algorithm", "Kruskal's Algorithm", "Activity Selection"]
+  },
+  "operating-systems": {
+    "Module 1": ["Introduction to OS", "OS Functions", "Process Management", "Process Scheduling", "Interprocess Communication"],
+    "Module 2": ["Memory Management", "Paging", "Segmentation", "Virtual Memory", "Page Replacement"],
+    "Module 3": ["File Systems", "File Organization", "Directory Structure", "File Allocation", "Disk Scheduling"],
+    "Module 4": ["Deadlocks", "Deadlock Prevention", "Deadlock Avoidance", "Deadlock Detection", "Recovery"]
+  },
+  "dbms": {
+    "Module 1": ["Introduction to DBMS", "Data Models", "ER Model", "Relational Model", "Database Design"],
+    "Module 2": ["SQL Basics", "DDL Commands", "DML Commands", "DCL Commands", "Advanced Queries"],
+    "Module 3": ["Normalization", "1NF, 2NF, 3NF", "BCNF", "Denormalization", "Functional Dependencies"],
+    "Module 4": ["Transaction Management", "ACID Properties", "Concurrency Control", "Recovery", "Distributed Databases"]
+  },
+  "computer-networks": {
+    "Module 1": ["Introduction to Networks", "Network Types", "OSI Model", "TCP/IP Model", "Network Topologies"],
+    "Module 2": ["Physical Layer", "Transmission Media", "Encoding", "Multiplexing", "Switching"],
+    "Module 3": ["Data Link Layer", "Error Detection", "Flow Control", "Media Access Control", "LAN Technologies"],
+    "Module 4": ["Network Layer", "Routing Algorithms", "IP Addressing", "Subnetting", "Network Security"]
+  },
+  "software-engineering": {
+    "Module 1": ["Introduction to SE", "Software Development Life Cycle", "Waterfall Model", "Agile Development", "Requirements Engineering"],
+    "Module 2": ["System Design", "Architecture Design", "Detailed Design", "Design Patterns", "UML Diagrams"],
+    "Module 3": ["Implementation", "Coding Standards", "Testing", "Unit Testing", "Integration Testing"],
+    "Module 4": ["Maintenance", "Software Metrics", "Quality Assurance", "Project Management", "Risk Management"]
+  },
+  "artificial-intelligence": {
+    "Module 1": ["Introduction to AI", "AI Applications", "Intelligent Agents", "Problem Solving", "Search Algorithms"],
+    "Module 2": ["Knowledge Representation", "Logic", "Rule-Based Systems", "Semantic Networks", "Frames"],
+    "Module 3": ["Machine Learning Basics", "Supervised Learning", "Unsupervised Learning", "Neural Networks", "Expert Systems"],
+    "Module 4": ["Natural Language Processing", "Computer Vision", "Robotics", "AI Ethics", "Future of AI"]
+  },
+  "machine-learning": {
+    "Module 1": ["Introduction to ML", "Types of Learning", "Data Preprocessing", "Feature Engineering", "Model Selection"],
+    "Module 2": ["Supervised Learning", "Linear Regression", "Logistic Regression", "Decision Trees", "Support Vector Machines"],
+    "Module 3": ["Unsupervised Learning", "Clustering", "K-Means", "Hierarchical Clustering", "Dimensionality Reduction"],
+    "Module 4": ["Deep Learning", "Neural Networks", "Convolutional Neural Networks", "Recurrent Neural Networks", "Model Evaluation"]
+  },
+  "compiler-design": {
+    "Module 1": ["Introduction to Compilers", "Compiler Phases", "Lexical Analysis", "Regular Expressions", "Finite Automata"],
+    "Module 2": ["Syntax Analysis", "Context Free Grammars", "Parsing", "Top-Down Parsing", "Bottom-Up Parsing"],
+    "Module 3": ["Semantic Analysis", "Type Checking", "Symbol Tables", "Intermediate Code Generation", "Code Optimization"],
+    "Module 4": ["Code Generation", "Target Code", "Register Allocation", "Code Scheduling", "Compiler Tools"]
+  },
+  "web-development": {
+    "Module 1": ["HTML Basics", "HTML Structure", "Forms and Inputs", "Semantic HTML", "HTML5 Features"],
+    "Module 2": ["CSS Styling", "Selectors", "Box Model", "Flexbox", "CSS Grid"],
+    "Module 3": ["JavaScript Fundamentals", "DOM Manipulation", "Events", "AJAX", "JSON"],
+    "Module 4": ["Frontend Frameworks", "React Basics", "Vue.js", "Angular", "Responsive Design"]
+  },
+  "java-programming": {
+    "Module 1": ["Introduction to Java", "Java Basics", "Variables and Data Types", "Control Structures", "Object-Oriented Concepts"],
+    "Module 2": ["Classes and Objects", "Inheritance", "Polymorphism", "Encapsulation", "Abstraction"],
+    "Module 3": ["Interfaces", "Abstract Classes", "Exception Handling", "File I/O", "Collections Framework"],
+    "Module 4": ["Multithreading", "Synchronization", "Networking", "JDBC", "Java Applications"]
+  },
+  "python-programming": {
+    "Module 1": ["Introduction to Python", "Python Basics", "Variables and Data Types", "Control Structures", "Functions"],
+    "Module 2": ["Data Structures", "Lists", "Tuples", "Dictionaries", "Sets"],
+    "Module 3": ["Object-Oriented Programming", "Classes and Objects", "Inheritance", "Modules", "Packages"],
+    "Module 4": ["File Handling", "Exception Handling", "Regular Expressions", "Libraries", "Python Applications"]
+  },
+  "theory-of-computation": {
+    "Module 1": ["Introduction to TOC", "Finite Automata", "DFA", "NFA", "Regular Expressions"],
+    "Module 2": ["Context Free Grammars", "Pushdown Automata", "Pumping Lemma", "Chomsky Hierarchy", "Parsing"],
+    "Module 3": ["Turing Machines", "Universal Turing Machine", "Halting Problem", "Computability", "Decidability"],
+    "Module 4": ["Complexity Theory", "P vs NP Problem", "NP-Complete Problems", "Space Complexity", "Time Complexity"]
+  },
+  "computer-organization": {
+    "Module 1": ["Introduction to CO", "Computer Architecture", "CPU Organization", "Memory Hierarchy", "Cache Memory"],
+    "Module 2": ["Instruction Set Architecture", "Instruction Formats", "Addressing Modes", "Assembly Language", "RISC vs CISC"],
+    "Module 3": ["Arithmetic Logic Unit", "Number Systems", "Binary Arithmetic", "Floating Point", "ALU Design"],
+    "Module 4": ["Control Unit", "Microprogramming", "Pipelining", "Parallel Processing", "Performance Metrics"]
+  },
+  "cyber-security": {
+    "Module 1": ["Introduction to Cybersecurity", "Security Threats", "Vulnerabilities", "Risk Assessment", "Security Policies"],
+    "Module 2": ["Cryptography", "Symmetric Encryption", "Asymmetric Encryption", "Hash Functions", "Digital Signatures"],
+    "Module 3": ["Network Security", "Firewalls", "Intrusion Detection", "VPN", "Wireless Security"],
+    "Module 4": ["Application Security", "Web Security", "Mobile Security", "Incident Response", "Forensics"]
+  },
+  "cloud-computing": {
+    "Module 1": ["Introduction to Cloud", "Cloud Models", "IaaS", "PaaS", "SaaS"],
+    "Module 2": ["Cloud Deployment", "Public Cloud", "Private Cloud", "Hybrid Cloud", "Multi-Cloud"],
+    "Module 3": ["Cloud Services", "AWS Services", "Azure Services", "Google Cloud", "Cloud Storage"],
+    "Module 4": ["Cloud Security", "Identity Management", "Data Protection", "Compliance", "Cloud Migration"]
+  },
+  "data-science": {
+    "Module 1": ["Introduction to Data Science", "Data Types", "Data Collection", "Data Cleaning", "Exploratory Data Analysis"],
+    "Module 2": ["Statistical Analysis", "Descriptive Statistics", "Inferential Statistics", "Hypothesis Testing", "Correlation"],
+    "Module 3": ["Data Visualization", "Charts and Graphs", "Matplotlib", "Seaborn", "Interactive Visualizations"],
+    "Module 4": ["Predictive Modeling", "Regression Models", "Classification Models", "Model Evaluation", "Deployment"]
+  },
+  "mathematics": {
+    "Module 1": ["Discrete Mathematics", "Set Theory", "Logic", "Relations", "Functions"],
+    "Module 2": ["Linear Algebra", "Matrices", "Vectors", "Linear Transformations", "Eigenvalues"],
+    "Module 3": ["Probability", "Random Variables", "Probability Distributions", "Bayes Theorem", "Statistical Inference"],
+    "Module 4": ["Calculus", "Limits", "Derivatives", "Integration", "Applications"]
+  },
+  "communication-skills": {
+    "Module 1": ["Technical Writing", "Report Writing", "Documentation", "Email Communication", "Business Writing"],
+    "Module 2": ["Presentation Skills", "Public Speaking", "Visual Aids", "Body Language", "Audience Engagement"],
+    "Module 3": ["Professional Communication", "Team Communication", "Conflict Resolution", "Negotiation", "Leadership"],
+    "Module 4": ["Digital Communication", "Social Media", "Online Etiquette", "Virtual Meetings", "Digital Presence"]
   }
 }
