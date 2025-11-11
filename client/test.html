@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .nav-tab { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; border-radius: 5px; }
+        .nav-tab:hover { background: #0056b3; }
+        .nav-tab.active { background: #28a745; }
+        .tab-panel { display: none; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
+        .tab-panel.active { display: block; }
+        .debug { margin-top: 20px; padding: 10px; background: #f8f9fa; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Navigation Test</h1>
+    
+    <nav class="nav-tabs">
+        <button id="tabChat" class="nav-tab active" onclick="switchTab('chat')">AI Chatbot</button>
+        <button id="tabCollege" class="nav-tab" onclick="switchTab('college')">College-Specific AI</button>
+        <button id="tabQuiz" class="nav-tab" onclick="switchTab('quiz')">Quiz Practice</button>
+    </nav>
+    
+    <div id="tabContentChat" class="tab-panel active">
+        <h2>AI Chatbot</h2>
+        <p>This is the AI Chatbot tab content.</p>
+    </div>
+    
+    <div id="tabContentCollege" class="tab-panel">
+        <h2>College-Specific AI</h2>
+        <p>This is the College-Specific AI tab content.</p>
+    </div>
+    
+    <div id="tabContentQuiz" class="tab-panel">
+        <h2>Quiz Practice</h2>
+        <p>This is the Quiz Practice tab content.</p>
+    </div>
+    
+    <div class="debug">
+        <h3>Debug Info</h3>
+        <p>Current Tab: <span id="currentTab">chat</span></p>
+        <button onclick="debugNavigation()">Debug Navigation</button>
+    </div>
+    
+    <script>
+        let currentTab = 'chat';
+        
+        function switchTab(tabName) {
+            console.log('Switching to tab:', tabName);
+            
+            // Hide all tab panels
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab
+            const tabContentId = `tabContent${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
+            const tabButtonId = `tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
+            
+            const tabContent = document.getElementById(tabContentId);
+            const tabButton = document.getElementById(tabButtonId);
+            
+            if (tabContent) {
+                tabContent.classList.add('active');
+                console.log('Activated tab content:', tabContentId);
+            }
+            
+            if (tabButton) {
+                tabButton.classList.add('active');
+                console.log('Activated tab button:', tabButtonId);
+            }
+            
+            currentTab = tabName;
+            document.getElementById('currentTab').textContent = tabName;
+        }
+        
+        function debugNavigation() {
+            console.log('=== Navigation Debug ===');
+            console.log('Current tab:', currentTab);
+            console.log('Tab elements:', {
+                tabChat: document.getElementById('tabChat'),
+                tabCollege: document.getElementById('tabCollege'),
+                tabQuiz: document.getElementById('tabQuiz')
+            });
+            console.log('Active panels:', document.querySelectorAll('.tab-panel.active'));
+            console.log('Active tabs:', document.querySelectorAll('.nav-tab.active'));
+        }
+        
+        // Test on load
+        setTimeout(() => {
+            console.log('Testing navigation on load...');
+            debugNavigation();
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>ExamPal - AI Exam Preparation</title>
+	<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' ry='6' fill='%230052ff'/%3E%3Ctext x='50%25' y='56%25' font-family='Arial' font-size='16' text-anchor='middle' fill='white'%3EE%3C/text%3E%3C/svg%3E">
+	<link rel="stylesheet" href="/web/styles.css" />
+</head>
+<body>
+	<!-- Main Navbar -->
+	<nav class="main-navbar" id="mainNavbar">
+		<div class="navbar-container">
+			<div class="navbar-left">
+				<button class="nav-item" id="navHome" data-section="home">
+					<span class="nav-icon">🏠</span>
+					<span class="nav-text">Home</span>
+				</button>
+				<button class="nav-item active" id="navChat" data-section="chat">
+					<span class="nav-icon">💬</span>
+					<span class="nav-text">AI Chatbot</span>
+					<span class="nav-badge hidden" id="chatBadge">1</span>
+				</button>
+				<button class="nav-item" id="navCollege" data-section="college">
+					<span class="nav-icon">🏫</span>
+					<span class="nav-text">College-Specific AI</span>
+				</button>
+				<button class="nav-item" id="navQuiz" data-section="quiz">
+					<span class="nav-icon">❓</span>
+					<span class="nav-text">Quiz Generator</span>
+				</button>
+				<div class="nav-item-dropdown" id="navResourcesDropdown">
+					<button class="nav-item" id="navResources" data-section="resources">
+						<span class="nav-icon">📘</span>
+						<span class="nav-text">Study Resources</span>
+						<span class="dropdown-arrow">▼</span>
+					</button>
+					<div class="dropdown-menu" id="resourcesDropdown">
+						<a href="#" class="dropdown-item" data-resource="notes">Study Notes</a>
+						<a href="#" class="dropdown-item" data-resource="textbooks">Textbooks</a>
+						<a href="#" class="dropdown-item" data-resource="pyqs">Previous Year Questions (PYQs)</a>
+						<a href="#" class="dropdown-item" data-resource="assignments">Assignments</a>
+						<a href="#" class="dropdown-item" data-resource="videos">Video Lectures</a>
+					</div>
+				</div>
+				<button class="nav-item" id="navHelp" data-section="help">
+					<span class="nav-icon">❔</span>
+					<span class="nav-text">Help & Support</span>
+				</button>
+			</div>
+			<div class="navbar-right">
+				<div class="nav-item-dropdown" id="navProfileDropdown">
+					<button class="nav-item" id="navProfile" title="Profile">
+						<span class="nav-icon">👤</span>
+						<span class="nav-text">Profile</span>
+						<span class="dropdown-arrow">▼</span>
+					</button>
+					<div class="dropdown-menu" id="profileDropdown">
+						<a href="#" class="dropdown-item" id="profileSignIn">Sign In</a>
+						<a href="#" class="dropdown-item" id="profileDashboard">Performance Dashboard</a>
+						<a href="#" class="dropdown-item" id="profileSettings">User Settings</a>
+						<a href="#" class="dropdown-item" id="profileLogout" style="display:none;">Logout</a>
+					</div>
+				</div>
+			</div>
+			<button class="hamburger-menu" id="hamburgerMenu">
+				<span>☰</span>
+			</button>
+		</div>
+	</nav>
+
+	<!-- Welcome Page / Hero Section -->
+	<section class="welcome-page" id="welcomePage">
+		<div class="hero-section">
+			<div class="hero-content">
+				<h1 class="hero-heading">ExamPal – AI Exam Preparation</h1>
+				<h2 class="hero-subheading">Master Your College Exams with Instant AI Guidance</h2>
+				<div class="hero-description">
+					<p>Your personal AI tutor available 24/7</p>
+					<p>Instant doubt solving in Hindi & English</p>
+					<p>Syllabus-aligned quizzes for your college</p>
+				</div>
+				<button class="cta-button" id="getStartedBtn">Get Started with AI Chatbot</button>
+			</div>
+			<div class="hero-visual">
+				<div class="hero-illustration">
+					<div class="illustration-item">🤖</div>
+					<div class="illustration-item">📚</div>
+					<div class="illustration-item">🎓</div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- Footer (Only on Welcome Page) -->
+		<footer class="main-footer">
+			<div class="footer-content">
+				<p>&copy; 2025 ExamPal | <a href="#" class="footer-link">Privacy Policy</a> | <a href="#" class="footer-link">Terms of Service</a></p>
+				<p>Developed by Students of BBD University CSE | Contact: <a href="mailto:help@exampal" class="footer-link">exampal@gmail.com</a></p>
+				<p>Made for AKTU & BBD University Students</p>
+			</div>
+		</footer>
+	</section>
+
+	<!-- Main App (Hidden Initially) -->
+	<section class="main-app hidden" id="mainApp">
+		<header class="app-header">
+			<h1>ExamPal AI Assistant</h1>
+			<div class="status">
+				<span id="statusText">Ready</span>
+			</div>
+		</header>
+		
+  
+
+
+
+
+	<main class="layout">
+		<!-- Tab Content -->
+		<section class="tab-content">
+			<!-- AI Chatbot Tab -->
+			<div id="tabContentChat" class="tab-panel active">
+				<div class="chat">
+					<!-- Scrollable Messages Container -->
+					<div class="messages-container">
+						<div id="messages" class="messages"></div>
+						<div id="typing" class="typing hidden">ExamPal is typing...</div>
+						<div id="followups" class="followups"></div>
+					</div>
+					
+					<!-- Fixed Bottom Area (Suggestions + Input) -->
+					<div class="chat-bottom-fixed">
+						<!-- Suggestions Bar (Horizontal Scrollable Pills) -->
+						<div id="suggestionsBar" class="suggestions-bar">
+							<div id="suggestions" class="suggestions-scroll"></div>
+						</div>
+						
+						<!-- Input Form -->
+						<form id="chatForm" class="chat-input" autocomplete="off">
+							<div class="input-wrapper">
+								<input id="messageInput" type="text" placeholder="Ask anything for your exam prep..." />
+								<div class="input-actions">
+									<button type="button" id="voiceBtn" class="btn icon" title="Voice input">🎤</button>
+									<label class="btn icon" title="Upload file">
+										📄<input id="fileInput" type="file" accept=".pdf,.doc,.docx,.txt" hidden />
+									</label>
+									<button type="submit" class="btn primary">Send</button>
+									<button type="button" id="exportBtn" class="btn export-btn" title="Export conversation">Export</button>
+								</div>
+							</div>
+							
+						</form>
+					</div>
+				</div>
+			</div>
+
+			<!-- College-Specific AI Tab -->
+			<div id="tabContentCollege" class="tab-panel">
+				<div class="cs-layout">
+					<div class="cs-left">
+						<div class="cs-panel">
+							<h3>College-Specific AI</h3>
+							<div class="cs-grid">
+								<div class="form-row">
+									<label>College</label>
+									<select id="csCollege"></select>
+								</div>
+								<div class="form-row">
+									<label>Subject *</label>
+									<div class="dropdown-container">
+										<input id="csSubject" type="text" placeholder="Type to search subjects..." autocomplete="off" />
+										<ul id="csSubjectSug" class="sugs hidden"></ul>
+									</div>
+								</div>
+								<div class="form-row">
+									<label>Module (optional)</label>
+									<div class="dropdown-container">
+										<select id="csModule">
+											<option value="">Select Module</option>
+										</select>
+									</div>
+								</div>
+								<div class="form-row">
+									<label>Topic (optional)</label>
+									<div class="dropdown-container">
+										<select id="csTopic">
+											<option value="">Select Topic</option>
+										</select>
+									</div>
+								</div>
+								<div class="form-row">
+									<label>Level</label>
+									<select id="csLevel">
+										<option value="beginner">Beginner</option>
+										<option value="intermediate" selected>Intermediate</option>
+										<option value="advanced">Advanced</option>
+									</select>
+								</div>
+							</div>
+							<div class="cs-actions">
+								<button id="csExplainBtn" class="btn primary">Explain</button>
+								<button id="csPyqBtn" class="btn">PYQ</button>
+								<button id="csCheatBtn" class="btn">Cheat Sheet</button>
+							</div>
+						</div>
+					</div>
+					<div class="cs-right">
+						<div id="csOutput" class="cs-output"></div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Quiz Practice Tab -->
+			<div id="tabContentQuiz" class="tab-panel">
+				<div class="quiz-layout">
+					<div class="quiz-left">
+						<div class="quiz-panel">
+							<h3>Quiz Practice</h3>
+							<div class="quiz-controls">
+								<input id="quizSubject" type="text" placeholder="Subject e.g. Computer Science" />
+								<input id="quizTopic" type="text" placeholder="Topic (optional)" />
+								<select id="quizDifficulty">
+									<option value="beginner">Beginner</option>
+									<option value="intermediate" selected>Intermediate</option>
+									<option value="advanced">Advanced</option>
+								</select>
+								<select id="quizCount">
+									<option value="3">3</option>
+									<option value="5" selected>5</option>
+									<option value="8">8</option>
+									<option value="10">10</option>
+								</select>
+								<button id="startQuizBtn" class="btn primary">Generate Quiz</button>
+							</div>
+							<div class="quiz-actions hidden" id="quizActions">
+								<button id="resetQuizBtn" class="btn">Reset</button>
+							</div>
+							<div id="quizResult" class="quiz-result"></div>
+						</div>
+					</div>
+					<div class="quiz-right">
+						<div id="quizContainer" class="quiz-container"></div>
+					</div>
+				</div>
+			</div>
+		</section>
+	</main>
+	</section>
+
+	<script src="/web/main.js"></script>
+</body>
+</html>
