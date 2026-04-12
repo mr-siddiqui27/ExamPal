@@ -5,7 +5,13 @@ const compression = require('compression');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
-require('dotenv').config({ path: './config.env' });
+// Load env from project root so GEMINI_API_KEY is set regardless of cwd
+const envPath = path.join(__dirname, 'config.env');
+require('dotenv').config({ path: path.join(__dirname, '.env') }); // load .env first (optional)
+const envResult = require('dotenv').config({ path: envPath });    // then config.env (overrides)
+if (envResult.error && !process.env.GEMINI_API_KEY && process.env.NODE_ENV !== 'production') {
+  console.warn('⚠️  Could not load config.env:', envResult.error.message, '| Expected at:', envPath);
+}
 
 // Import middleware
 const notFound = require('./middleware/notFound');
@@ -191,7 +197,8 @@ const server = app.listen(PORT, async () => {
   } else {
     console.log('📊 Database features disabled - using mock data');
   }
-  
+  const key = process.env.GEMINI_API_KEY;
+  console.log(key ? '🤖 Gemini API key loaded (AI chatbot enabled)' : '⚠️  GEMINI_API_KEY not set - set it in config.env for AI features');
   console.log('✨ Ready to serve requests!');
 });
 

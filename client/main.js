@@ -7,6 +7,16 @@ document.addEventListener("DOMContentLoaded", () => {
 	const navbarLeft = document.querySelector('.navbar-left');
 	const navbarRight = document.querySelector('.navbar-right');
 	
+	// Brand → same as Home (welcome page when in app)
+	const brandHome = document.getElementById('brandHome');
+	const navHomeBtn = document.getElementById('navHome');
+	if (brandHome && navHomeBtn) {
+		brandHome.addEventListener('click', (e) => {
+			e.preventDefault();
+			navHomeBtn.click();
+		});
+	}
+
 	// Get Started Button - Transition to App
 	if (getStartedBtn) {
 		getStartedBtn.addEventListener('click', () => {
@@ -30,21 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				document.getElementById('navChat').classList.add('active');
 				document.getElementById('navHome').classList.remove('active');
 				
-				// Initialize chatbot greeting
-				setTimeout(() => {
-					const messagesEl = document.getElementById('messages');
-					if (messagesEl && messagesEl.children.length === 0) {
-						const greeting = "Hello! I'm your ExamPal AI tutor. What would you like help with today?";
-						// Wait for addMsg to be available
-						const checkAndGreet = setInterval(() => {
-							if (window.addMsg && typeof window.addMsg === 'function') {
-								window.addMsg(greeting, 'ai');
-								clearInterval(checkAndGreet);
-							}
-						}, 100);
-						setTimeout(() => clearInterval(checkAndGreet), 2000);
-					}
-				}, 500);
+				// Empty chat UI (no auto-greeting; suggestions + empty state in chat tab)
 			}, 500);
 		});
 	}
@@ -122,14 +118,26 @@ document.addEventListener("DOMContentLoaded", () => {
 			resourcesDropdown.classList.toggle('active');
 		});
 		
-		// Resources dropdown items
+		// Resources dropdown items - show Study Resources page instead of popup
 		const resourceItems = resourcesDropdown.querySelectorAll('.dropdown-item');
 		resourceItems.forEach(item => {
 			item.addEventListener('click', (e) => {
 				e.preventDefault();
-				const resource = item.getAttribute('data-resource');
-				alert(`${item.textContent} coming soon!`);
 				resourcesDropdown.classList.remove('active');
+				// Show main app and go to Study Resources tab (no alert)
+				const welcomePage = document.getElementById('welcomePage');
+				const mainApp = document.getElementById('mainApp');
+				const getStartedBtn = document.getElementById('getStartedBtn');
+				if (mainApp && mainApp.classList.contains('hidden') && getStartedBtn) {
+					getStartedBtn.click();
+					setTimeout(() => switchTab('resources'), 600);
+				} else {
+					switchTab('resources');
+				}
+				// Update navbar active to Study Resources
+				document.querySelectorAll('.nav-item[data-section]').forEach(nav => nav.classList.remove('active'));
+				const navResources = document.getElementById('navResources');
+				if (navResources) navResources.classList.add('active');
 			});
 		});
 	}
@@ -151,6 +159,19 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	});
 	
+	// On page load: ensure Home is selected when welcome page is visible
+	(function setInitialNavState() {
+		const welcomeVisible = welcomePage && !welcomePage.classList.contains('hidden');
+		document.querySelectorAll('.nav-item[data-section]').forEach(nav => nav.classList.remove('active'));
+		const homeBtn = document.getElementById('navHome');
+		const chatBtn = document.getElementById('navChat');
+		if (welcomeVisible && homeBtn) {
+			homeBtn.classList.add('active');
+		} else if (chatBtn) {
+			chatBtn.classList.add('active');
+		}
+	})();
+
 	// Navbar Navigation
 	const navItems = document.querySelectorAll('.nav-item[data-section]');
 	navItems.forEach(item => {
@@ -214,8 +235,13 @@ document.addEventListener("DOMContentLoaded", () => {
 					switchTab('quiz');
 				}
 			} else if (section === 'resources') {
-				// Resources dropdown is handled above
-				return;
+				// Show Study Resources page (no popup)
+				if (welcomePage && !welcomePage.classList.contains('hidden')) {
+					getStartedBtn.click();
+					setTimeout(() => switchTab('resources'), 600);
+				} else {
+					switchTab('resources');
+				}
 			} else {
 				// Other sections (help)
 				alert(`${section.charAt(0).toUpperCase() + section.slice(1)} section coming soon!`);
@@ -251,6 +277,17 @@ function switchTab(tabName) {
 	}
 	
 	currentTab = tabName;
+
+	if (tabName !== 'chat') {
+		const layout = document.getElementById('chatLayout');
+		if (layout && layout.classList.contains('chat-sidebar-open')) {
+			layout.classList.remove('chat-sidebar-open');
+			const backdrop = document.getElementById('chatSidebarBackdrop');
+			if (backdrop) backdrop.setAttribute('aria-hidden', 'true');
+			const tgl = document.getElementById('chatSidebarToggle');
+			if (tgl) tgl.setAttribute('aria-expanded', 'false');
+		}
+	}
 }
 
 // navigation button event listener
@@ -271,9 +308,12 @@ document.addEventListener("DOMContentLoaded", () => {
 	let typingEl = document.getElementById('typing');
 	let statusEl = document.getElementById('statusText');
 	let messagesEl = document.getElementById('messages');
-	let followupsEl = document.getElementById('followups');
-	let suggestionsEl = document.getElementById('suggestions');
 	const conversation = [];
+	const CHAT_SESSIONS_KEY = 'exampal-chat-sessions-v1';
+	const CHAT_MOBILE_BREAKPOINT = 900;
+	let chatLoading = false;
+	let sessions = [];
+	let activeSessionId = null;
 	let quizState = { questions: [], answers: {} };
 	let currentTab = 'chat';
 
@@ -298,7 +338,173 @@ document.addEventListener("DOMContentLoaded", () => {
 		cache: { colleges: [], subjects: [], modules: [], topics: [] }
 	};
 
-	function setStatus(text){ statusEl.textContent = text; }
+	function setStatus(text){ if (statusEl) statusEl.textContent = text; }
+
+	function loadSessionsFromStorage() {
+		try {
+			const raw = localStorage.getItem(CHAT_SESSIONS_KEY);
+			const list = raw ? JSON.parse(raw) : [];
+			return Array.isArray(list) ? list : [];
+		} catch {
+			return [];
+		}
+	}
+	function saveSessionsToStorage() {
+		try {
+			localStorage.setItem(CHAT_SESSIONS_KEY, JSON.stringify(sessions.slice(0, 50)));
+		} catch (e) {
+			console.warn('Could not save chat sessions', e);
+		}
+	}
+	function generateSessionId() {
+		return 's_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
+	}
+	function ensureActiveSession() {
+		if (!activeSessionId) activeSessionId = generateSessionId();
+	}
+	function upsertSessionFromConversation() {
+		if (!conversation.length) return;
+		ensureActiveSession();
+		const firstUser = conversation.find(m => m.who === 'user');
+		const raw = (firstUser?.text || 'New chat').trim();
+		const title = raw.length > 40 ? raw.slice(0, 40) + '…' : raw || 'New chat';
+		const idx = sessions.findIndex(s => s.id === activeSessionId);
+		const entry = {
+			id: activeSessionId,
+			title,
+			updatedAt: Date.now(),
+			messages: conversation.map(m => ({ who: m.who, text: m.text }))
+		};
+		if (idx >= 0) sessions[idx] = entry;
+		else sessions.unshift(entry);
+		sessions.sort((a, b) => b.updatedAt - a.updatedAt);
+		saveSessionsToStorage();
+		renderChatSidebar();
+	}
+	function renderChatSidebar() {
+		const todayEl = document.getElementById('chatHistoryToday');
+		const yEl = document.getElementById('chatHistoryYesterday');
+		const oldEl = document.getElementById('chatHistoryOlder');
+		if (!todayEl || !yEl || !oldEl) return;
+		const startOfToday = new Date(new Date().setHours(0, 0, 0, 0)).getTime();
+		const startOfYesterday = startOfToday - 86400000;
+		const buckets = { today: [], yesterday: [], older: [] };
+		sessions.forEach(s => {
+			if (s.updatedAt >= startOfToday) buckets.today.push(s);
+			else if (s.updatedAt >= startOfYesterday) buckets.yesterday.push(s);
+			else buckets.older.push(s);
+		});
+		function fill(ul, list, groupWrap) {
+			ul.innerHTML = '';
+			list.forEach(s => {
+				const li = document.createElement('li');
+				const btn = document.createElement('button');
+				btn.type = 'button';
+				btn.className = 'chat-history-item' + (s.id === activeSessionId ? ' is-active' : '');
+				btn.textContent = s.title || 'Chat';
+				btn.dataset.sessionId = s.id;
+				btn.addEventListener('click', () => selectChatSession(s.id));
+				li.appendChild(btn);
+				ul.appendChild(li);
+			});
+			if (groupWrap) groupWrap.style.display = list.length ? '' : 'none';
+		}
+		fill(todayEl, buckets.today, document.querySelector('.chat-history-group[data-period="today"]'));
+		fill(yEl, buckets.yesterday, document.querySelector('.chat-history-group[data-period="yesterday"]'));
+		fill(oldEl, buckets.older, document.querySelector('.chat-history-group[data-period="older"]'));
+	}
+	function selectChatSession(id) {
+		upsertSessionFromConversation();
+		const sess = sessions.find(s => s.id === id);
+		if (!sess || !sess.messages) return;
+		activeSessionId = id;
+		messagesEl.innerHTML = '';
+		conversation.length = 0;
+		sess.messages.forEach(m => {
+			addMsg(m.text, m.who, undefined, { skipConversation: true, skipSync: true });
+			conversation.push({ who: m.who, text: m.text, at: new Date().toISOString() });
+		});
+		syncChatUI();
+		renderChatSidebar();
+		closeChatSidebarIfMobile();
+	}
+	function newChatSession() {
+		upsertSessionFromConversation();
+		activeSessionId = null;
+		messagesEl.innerHTML = '';
+		conversation.length = 0;
+		syncChatUI();
+		renderChatSidebar();
+		closeChatSidebarIfMobile();
+	}
+	function setChatLoading(loading) {
+		chatLoading = loading;
+		const input = document.getElementById('messageInput');
+		const sendBtn = document.getElementById('chatSendBtn');
+		const form = document.getElementById('chatForm');
+		if (sendBtn) sendBtn.disabled = loading;
+		if (input) input.disabled = loading;
+		if (form) form.classList.toggle('chat-input--disabled', loading);
+	}
+	function syncChatUI() {
+		const emptyEl = document.getElementById('chatEmptyState');
+		const msgEls = messagesEl ? messagesEl.querySelectorAll('.msg') : [];
+		const hasMessages = msgEls.length > 0;
+		/* Suggestion chips only in empty state (hidden for entire conversation once any message exists) */
+		if (emptyEl) emptyEl.classList.toggle('is-hidden', hasMessages);
+	}
+	function closeChatSidebarIfMobile() {
+		const layout = document.getElementById('chatLayout');
+		const backdrop = document.getElementById('chatSidebarBackdrop');
+		if (!layout || window.innerWidth > CHAT_MOBILE_BREAKPOINT) return;
+		layout.classList.remove('chat-sidebar-open');
+		const t = document.getElementById('chatSidebarToggle');
+		if (t) t.setAttribute('aria-expanded', 'false');
+		if (backdrop) backdrop.setAttribute('aria-hidden', 'true');
+	}
+	function setupChatSidebarToggle() {
+		const layout = document.getElementById('chatLayout');
+		const toggle = document.getElementById('chatSidebarToggle');
+		const closeBtn = document.getElementById('chatSidebarClose');
+		const backdrop = document.getElementById('chatSidebarBackdrop');
+		if (!layout) return;
+		function openSidebar() {
+			layout.classList.add('chat-sidebar-open');
+			if (toggle) toggle.setAttribute('aria-expanded', 'true');
+			if (backdrop) backdrop.setAttribute('aria-hidden', 'false');
+		}
+		function closeSidebar() {
+			layout.classList.remove('chat-sidebar-open');
+			if (toggle) toggle.setAttribute('aria-expanded', 'false');
+			if (backdrop) backdrop.setAttribute('aria-hidden', 'true');
+		}
+		toggle?.addEventListener('click', (e) => {
+			e.stopPropagation();
+			if (layout.classList.contains('chat-sidebar-open')) closeSidebar();
+			else openSidebar();
+		});
+		closeBtn?.addEventListener('click', () => closeSidebar());
+		const chatMain = document.querySelector('#tabContentChat .chat-main');
+		chatMain?.addEventListener('click', (e) => {
+			if (!layout.classList.contains('chat-sidebar-open')) return;
+			const sb = document.getElementById('chatSidebar');
+			if (sb && sb.contains(e.target)) return;
+			closeSidebar();
+		});
+		window.addEventListener('resize', () => {
+			if (window.innerWidth > CHAT_MOBILE_BREAKPOINT) closeSidebar();
+		});
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape' && layout.classList.contains('chat-sidebar-open')) closeSidebar();
+		});
+	}
+	function sendSuggestionPrompt(text) {
+		const input = document.getElementById('messageInput');
+		const form = document.getElementById('chatForm');
+		if (!input || !form || chatLoading) return;
+		input.value = text;
+		form.requestSubmit();
+	}
 	
 	// Convert markdown to HTML for AI messages
 	function markdownToHtml(text) {
@@ -448,12 +654,10 @@ document.addEventListener("DOMContentLoaded", () => {
 		return html;
 	}
 	
-	function addMsg(text, who, cls){
+	function addMsg(text, who, cls, opts = {}){
 		const div = document.createElement('div');
-		div.className = `msg ${who}` + (cls?` ${cls}`:'');
+		div.className = `msg ${who}` + (cls ? ` ${cls}` : '');
 		
-		// For AI messages, render as HTML with formatting
-		// For user messages, use plain text for security
 		if (who === 'ai') {
 			div.innerHTML = markdownToHtml(text);
 		} else {
@@ -462,15 +666,18 @@ document.addEventListener("DOMContentLoaded", () => {
 		
 		messagesEl.appendChild(div);
 		
-		// Scroll to bottom of messages container
 		const messagesContainer = document.querySelector('.messages-container');
 		if (messagesContainer) {
-			setTimeout(() => {
+			requestAnimationFrame(() => {
 				messagesContainer.scrollTop = messagesContainer.scrollHeight;
-			}, 50);
+			});
 		}
 		
-		conversation.push({ who, text, at: new Date().toISOString() });
+		if (!opts.skipConversation) {
+			conversation.push({ who, text, at: new Date().toISOString() });
+			upsertSessionFromConversation();
+		}
+		if (!opts.skipSync) syncChatUI();
 	}
 	
 	// Expose addMsg globally for welcome page
@@ -483,57 +690,22 @@ document.addEventListener("DOMContentLoaded", () => {
 		// Profile functionality will be added when authentication is enabled
 	}
 
-	async function loadSuggestions(){
-		const defaults = [
-			"Explain time management for exams",
-			"Give a short quiz on linked lists",
-			"Summarize Newton's laws for revision",
-			"Create a cheat-sheet for derivatives",
-			"How to avoid common mistakes in exams?"
-		];
-		suggestionsEl.innerHTML='';
-		defaults.forEach(s=>{
-			const li=document.createElement('li');
-			li.textContent = s;
-			li.onclick=()=>{ 
-				document.getElementById('messageInput').value = s; 
-				document.getElementById('messageInput').focus();
-			};
-			suggestionsEl.appendChild(li);
+	function wireEmptyStateChips() {
+		const wrap = document.getElementById('chatEmptyChips');
+		if (!wrap) return;
+		wrap.querySelectorAll('.suggestion-chip').forEach(btn => {
+			btn.addEventListener('click', () => {
+				const prompt = btn.getAttribute('data-prompt') || btn.textContent;
+				sendSuggestionPrompt(prompt);
+			});
 		});
-		
-		// Show/hide suggestions bar
-		const suggestionsBar = document.getElementById('suggestionsBar');
-		if (suggestionsBar) {
-			if (defaults.length > 0) {
-				suggestionsBar.style.display = 'block';
-			} else {
-				suggestionsBar.style.display = 'none';
-			}
-		}
 	}
 
-
-	async function genFollowups(){
-		try {
-			const topic = conversation.slice().reverse().find(m=>m.who==='user')?.text?.slice(0,60) || '';
-			const url = `/api/ai/suggestions?${new URLSearchParams({ topic }).toString()}`;
-			const res = await fetch(url, { headers: headers() });
-			if (!res.ok) {
-				console.warn('Suggestions endpoint returned:', res.status);
-				return;
-			}
-			const data = await res.json();
-			followupsEl.textContent = '';
-			if (data.success){ followupsEl.textContent = (data.data.suggestions||'').toString(); }
-		} catch (e) {
-			console.warn('Failed to load suggestions:', e);
-			// Silently fail - suggestions are optional
-		}
-	}
 
 	async function sendChat(msg){
-		typingEl.classList.remove('hidden');
+		setChatLoading(true);
+		syncChatUI();
+		if (typingEl) typingEl.classList.remove('hidden');
 		const generalMsg = `As an exam preparation assistant, answer generally (not college/subject specific) unless explicitly asked: ${msg}`;
 		const body = { message: generalMsg };
 		try{
@@ -546,19 +718,21 @@ document.addEventListener("DOMContentLoaded", () => {
 				} catch {
 					errorData = { error: `Server error (${res.status})` };
 				}
-				typingEl.classList.add('hidden');
+				if (typingEl) typingEl.classList.add('hidden');
+				setChatLoading(false);
 				addMsg(errorData.error || 'AI error. Please try again.', 'ai', 'warning');
 				return;
 			}
 			const data = await res.json();
-			typingEl.classList.add('hidden');
+			if (typingEl) typingEl.classList.add('hidden');
+			setChatLoading(false);
 			if (!data.success){ addMsg(data.error||'AI error. Please try again.', 'ai', 'warning'); return; }
 			const text = data.data?.message || '';
 			addMsg(text || 'No response', 'ai');
 			await fetchProfile();
-			// genFollowups() removed - suggestions are shown in suggestions bar instead
 		}catch(e){
-			typingEl.classList.add('hidden');
+			if (typingEl) typingEl.classList.add('hidden');
+			setChatLoading(false);
 			console.error('Chat error:', e);
 			addMsg('Network error. Please retry.', 'ai', 'warning');
 		}
@@ -596,43 +770,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		return formatted;
 	}
 
-	// Update suggestions based on AI response and context
-	function updateSuggestions(context) {
-		const suggestions = [
-			`Explain more about ${context.topic || context.subject}`,
-			`Create a cheat sheet for ${context.subject}`,
-			`Generate PYQ for ${context.topic || context.subject}`,
-			`Give examples related to ${context.topic || context.subject}`,
-			`What are the key concepts in ${context.subject}?`
-		];
-		
-		// Update suggestions in AI Chatbot tab
-		const suggestionsList = document.getElementById('suggestions');
-		if (suggestionsList) {
-			suggestionsList.innerHTML = '';
-			suggestions.forEach(suggestion => {
-				const li = document.createElement('li');
-				li.textContent = suggestion;
-				li.onclick = () => {
-					// Switch to AI Chatbot tab and send suggestion
-					switchTab('chat');
-					document.getElementById('messageInput').value = suggestion;
-					document.getElementById('messageInput').focus();
-				};
-				suggestionsList.appendChild(li);
-			});
-		}
-		
-		// Show/hide suggestions bar
-		const suggestionsBar = document.getElementById('suggestionsBar');
-		if (suggestionsBar) {
-			if (suggestions.length > 0) {
-				suggestionsBar.style.display = 'block';
-			} else {
-				suggestionsBar.style.display = 'none';
-			}
-		}
-	}
+	// College tools: chat suggestion bar is not updated from here (strict chat-only rules).
+	function updateSuggestions(_context) {}
 	function debounce(fn, ms){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
 
 	async function loadColleges(){
@@ -841,6 +980,9 @@ document.addEventListener("DOMContentLoaded", () => {
 	let quizTimer = null;
 	let timeRemaining = 0;
 
+	function escapeAttr(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+	function escapeHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 	// Quiz logic
 	function renderQuiz(){
 		const container = document.getElementById('quizContainer');
@@ -865,17 +1007,20 @@ document.addEventListener("DOMContentLoaded", () => {
 		`;
 		container.appendChild(header);
 
-		// Current question
+		// Current question (full text including code blocks)
 		const question = quizData.questions[currentQuestion];
+		const options = Array.isArray(question.options) ? question.options : [];
+		const questionHtml = formatQuestionHtml(question.question || '');
 		const questionCard = document.createElement('div');
 		questionCard.className = 'quiz-question';
 		questionCard.innerHTML = `
-			<h4>Q${currentQuestion + 1}. ${question.question}</h4>
+			<h4>Q${currentQuestion + 1}.</h4>
+			<div class="quiz-question-body">${questionHtml}</div>
 			<div class="quiz-options">
-				${question.options.map((option, idx) => `
+				${options.map((option, idx) => `
 					<label class="quiz-option">
-						<input type="radio" name="currentQuestion" value="${option}" ${userAnswers[currentQuestion] === option ? 'checked' : ''}>
-						<span class="option-text">${String.fromCharCode(65 + idx)}) ${option}</span>
+						<input type="radio" name="currentQuestion" value="${escapeAttr(option)}" ${userAnswers[currentQuestion] === option ? 'checked' : ''}>
+						<span class="option-text">${String.fromCharCode(65 + idx)}) ${escapeHtml(option)}</span>
 					</label>
 				`).join('')}
 			</div>
@@ -887,7 +1032,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		nav.className = 'quiz-navigation';
 		nav.innerHTML = `
 			<button id="prevBtn" class="btn" ${currentQuestion === 0 ? 'disabled' : ''}>Previous</button>
-			<button id="nextBtn" class="btn primary" ${currentQuestion === quizData.questions.length - 1 ? 'disabled' : ''}>
+			<button id="nextBtn" class="btn primary">
 				${currentQuestion === quizData.questions.length - 1 ? 'Submit Quiz' : 'Next'}
 			</button>
 		`;
@@ -943,9 +1088,10 @@ document.addEventListener("DOMContentLoaded", () => {
 				return;
 			}
 
-			// Parse the quiz data
-			const text = data.data || data.response || '';
-			quizData = parseQuizText(text, subject, topic);
+			// Parse the quiz data (API returns data: { questions: "..." } or data as string)
+			const raw = (data.data && data.data.questions) ?? data.data ?? data.response ?? '';
+			const text = typeof raw === 'string' ? raw : (raw && typeof raw.questions === 'string' ? raw.questions : '');
+			quizData = parseQuizText(text || '', subject, topic);
 			
 			if (!quizData || !quizData.questions || quizData.questions.length === 0) {
 				setStatus('Could not parse quiz questions');
@@ -956,9 +1102,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			currentQuestion = 0;
 			userAnswers = new Array(quizData.questions.length).fill(null);
 			quizStartTime = Date.now();
-			timeRemaining = 30 * 60; // 30 minutes default
+			timeRemaining = 0; // elapsed seconds (count up from 0)
 			
-			// Start timer
+			// Start timer (count up from 0 until quiz finish)
 			startQuizTimer();
 			
 			// Render quiz
@@ -972,50 +1118,52 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	function parseQuizText(text, subject, topic) {
-		// Enhanced parser for better quiz parsing
+		// Ensure we have a string (API may return object or undefined)
+		if (typeof text !== 'string') text = '';
 		const questions = [];
-		const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+		const lines = text.split('\n');
 		
 		let currentQ = null;
-		let inOptions = false;
 		
 		for (let i = 0; i < lines.length; i++) {
-			const line = lines[i];
+			const rawLine = lines[i];
+			const line = rawLine.trim();
+			if (!line) {
+				if (currentQ && currentQ.question) currentQ.question += '\n';
+				continue;
+			}
 			
-			// Question detection
+			// Question detection (number or "Question N")
 			if (/^\d+[\.\)]\s/.test(line) || /^Question\s+\d+/i.test(line)) {
 				if (currentQ && currentQ.options.length >= 2) {
 					questions.push(currentQ);
 				}
+				const qText = line.replace(/^\d+[\.\)]\s/, '').replace(/^Question\s+\d+[\.\):]\s*/i, '').trim();
 				currentQ = {
-					question: line.replace(/^\d+[\.\)]\s/, '').replace(/^Question\s+\d+[\.\):]\s*/i, ''),
+					question: qText,
 					options: [],
 					correct: null,
 					explanation: ''
 				};
-				inOptions = true;
 			}
-			// Options detection
-			else if (inOptions && /^[A-D][\.\)]\s/.test(line)) {
-				if (currentQ) {
-					currentQ.options.push(line.replace(/^[A-D][\.\)]\s/, ''));
-				}
+			// Options detection (A) B) C) D) or A. B. with optional space)
+			else if (currentQ && /^[A-Da-d][\.\)]\s*/.test(line)) {
+				currentQ.options.push(line.replace(/^[A-Da-d][\.\)]\s*/i, '').trim());
 			}
 			// Correct answer detection
-			else if (/^Correct\s+Answer/i.test(line) || /^Answer/i.test(line)) {
-				if (currentQ) {
-					currentQ.correct = line.split(':').slice(1).join(':').trim();
-				}
+			else if (currentQ && (/^Correct\s+Answer/i.test(line) || /^Answer\s*:/i.test(line))) {
+				currentQ.correct = line.split(':').slice(1).join(':').trim();
 			}
 			// Explanation detection
-			else if (/^Explanation/i.test(line)) {
-				if (currentQ) {
-					currentQ.explanation = line.split(':').slice(1).join(':').trim();
-				}
+			else if (currentQ && /^Explanation/i.test(line)) {
+				currentQ.explanation = line.split(':').slice(1).join(':').trim();
+			}
+			// Any other line before options: append to question (e.g. code blocks, "following code", etc.)
+			else if (currentQ && currentQ.options.length === 0) {
+				currentQ.question += (currentQ.question ? '\n' : '') + rawLine;
 			}
 		}
 		
-		// Add last question
 		if (currentQ && currentQ.options.length >= 2) {
 			questions.push(currentQ);
 		}
@@ -1027,69 +1175,105 @@ document.addEventListener("DOMContentLoaded", () => {
 		};
 	}
 
+	// Render question text with code blocks (```...```) as <pre><code>
+	function formatQuestionHtml(questionText) {
+		if (typeof questionText !== 'string') return '';
+		const escapeHtml = (str) => {
+			const div = document.createElement('div');
+			div.textContent = str;
+			return div.innerHTML;
+		};
+		let out = '';
+		const parts = questionText.split(/(```[\s\S]*?```)/g);
+		for (const part of parts) {
+			if (part.startsWith('```') && part.endsWith('```')) {
+				const code = part.slice(3, -3).trim();
+				out += '<pre class="quiz-code-block"><code>' + escapeHtml(code) + '</code></pre>';
+			} else {
+				out += escapeHtml(part).replace(/\n/g, '<br>');
+			}
+		}
+		return out;
+	}
+
 	function startQuizTimer() {
 		quizTimer = setInterval(() => {
-			timeRemaining--;
+			if (!quizStartTime) return;
+			timeRemaining = Math.floor((Date.now() - quizStartTime) / 1000);
 			const minutes = Math.floor(timeRemaining / 60);
 			const seconds = timeRemaining % 60;
 			const timerEl = document.getElementById('quizTimer');
 			if (timerEl) {
 				timerEl.textContent = `Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 			}
-			
-			if (timeRemaining <= 0) {
-				clearInterval(quizTimer);
-				submitQuiz();
-			}
 		}, 1000);
 	}
 
 	async function submitQuiz(){
+		if (!quizData || !quizData.questions || quizData.questions.length === 0) return;
 		saveCurrentAnswer();
 		
 		if (quizTimer) {
 			clearInterval(quizTimer);
+			quizTimer = null;
 		}
 		
-		const timeTaken = Math.round((Date.now() - quizStartTime) / 1000);
-		const correctAnswers = userAnswers.filter((answer, idx) => 
-			answer === quizData.questions[idx].correct
-		).length;
-		const score = Math.round((correctAnswers / quizData.questions.length) * 100);
+		const timeTaken = quizStartTime ? Math.round((Date.now() - quizStartTime) / 1000) : 0;
+		const isCorrect = (answer, q, idx) => {
+			const correct = (q.correct || '').trim();
+			const opts = Array.isArray(q.options) ? q.options : [];
+			const ans = (answer || '').trim();
+			const correctNorm = correct.replace(/^[A-Da-d][\.\)]\s*/i, '').trim();
+			if (ans === correct || ans === correctNorm) return true;
+			const letterMatch = correct.match(/^([A-Da-d])[\.\)]?\s*/i);
+			if (letterMatch && opts.length) {
+				const letterIdx = letterMatch[1].toUpperCase().charCodeAt(0) - 65;
+				if (letterIdx >= 0 && letterIdx < opts.length && opts[letterIdx]) {
+					return ans === String(opts[letterIdx]).trim();
+				}
+			}
+			return false;
+		};
+		const correctAnswers = userAnswers.filter((answer, idx) => isCorrect(answer, quizData.questions[idx], idx)).length;
+		const marksPerQuestion = 2;
+		const totalMarks = quizData.questions.length * marksPerQuestion;
+		const scoreMarks = correctAnswers * marksPerQuestion;
+		const scorePercent = Math.round((correctAnswers / quizData.questions.length) * 100);
+		const timeStr = `${Math.floor(timeTaken / 60)}:${(timeTaken % 60).toString().padStart(2, '0')}`;
 		
-		// Show results
-		const result = document.getElementById('quizResult');
-		result.innerHTML = `
+		// Show results in right panel (quizContainer) so user sees it where the quiz was
+		const container = document.getElementById('quizContainer');
+		const wrongOnly = quizData.questions
+			.map((q, idx) => ({ q, idx }))
+			.filter(({ q, idx }) => !isCorrect(userAnswers[idx], q, idx));
+		container.innerHTML = `
 			<div class="quiz-result-content">
 				<h3>🎉 Quiz Complete!</h3>
 				<div class="quiz-stats">
 					<div class="stat">
 						<span class="stat-label">Score</span>
-						<span class="stat-value ${score >= 70 ? 'good' : score >= 50 ? 'average' : 'poor'}">${score}%</span>
-					</div>
-					<div class="stat">
-						<span class="stat-label">Correct</span>
-						<span class="stat-value">${correctAnswers}/${quizData.questions.length}</span>
+						<span class="stat-value ${scorePercent >= 70 ? 'good' : scorePercent >= 50 ? 'average' : 'poor'}">${scoreMarks} / ${totalMarks}</span>
+						<span class="stat-note">(${correctAnswers} correct, ${marksPerQuestion} marks each)</span>
 					</div>
 					<div class="stat">
 						<span class="stat-label">Time Taken</span>
-						<span class="stat-value">${Math.floor(timeTaken / 60)}:${(timeTaken % 60).toString().padStart(2, '0')}</span>
+						<span class="stat-value">${timeStr}</span>
 					</div>
 				</div>
 				<div class="quiz-answers">
-					<h4>Answer Review:</h4>
-					${quizData.questions.map((q, idx) => `
-						<div class="answer-item ${userAnswers[idx] === q.correct ? 'correct' : 'incorrect'}">
-							<strong>Q${idx + 1}:</strong> ${q.question}
-							<br><strong>Your Answer:</strong> ${userAnswers[idx] || 'Not answered'}
-							<br><strong>Correct Answer:</strong> ${q.correct}
-							${q.explanation ? `<br><strong>Explanation:</strong> ${q.explanation}` : ''}
+					<h4>Answer Key (wrong answers only)</h4>
+					${wrongOnly.length === 0 ? '<p class="quiz-all-correct">All answers correct! 🎉</p>' : wrongOnly.map(({ q, idx }) => `
+						<div class="answer-item incorrect">
+							<strong>Q${idx + 1}:</strong> ${formatQuestionHtml(q.question || '')}
+							<br><strong>Your Answer:</strong> ${escapeHtml(String(userAnswers[idx] || 'Not answered'))}
+							<br><strong>Correct Answer:</strong> ${escapeHtml(String(q.correct || '—'))}
+							${q.explanation ? `<br><strong>Explanation:</strong> ${escapeHtml(String(q.explanation))}` : ''}
 						</div>
 					`).join('')}
 				</div>
 			</div>
 		`;
-		result.classList.remove('hidden');
+		document.getElementById('quizResult').classList.add('hidden');
 		
 		// Save to backend
 		try {
@@ -1098,7 +1282,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				headers: { 'Content-Type': 'application/json' }, 
 				body: JSON.stringify({ 
 					answers: userAnswers, 
-					score, 
+					score: scorePercent, 
 					time: timeTaken, 
 					questions: quizData.questions,
 					subject: quizData.subject,
@@ -1109,7 +1293,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			console.error('Failed to save quiz:', e); 
 		}
 		
-		setStatus(`Quiz completed! Score: ${score}%`);
+		setStatus(`Quiz completed! Score: ${scoreMarks}/${totalMarks} (${timeStr})`);
 	}
 
 	function resetQuiz(){
@@ -1147,10 +1331,35 @@ document.addEventListener("DOMContentLoaded", () => {
 		document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 	}
 
-	// Events
-	document.getElementById('chatForm').onsubmit = async (e)=>{ e.preventDefault(); const input = document.getElementById('messageInput'); const msg = input.value.trim(); if (!msg) return; addMsg(msg, 'user'); input.value = ''; await sendChat(msg); };
-	document.getElementById('fileInput').onchange = async (e)=>{ const f = e.target.files[0]; if (f) { addMsg(`Summarize file: ${f.name}`, 'user'); await summarizeFile(f); } };
-	document.getElementById('exportBtn').onclick = exportConversation;
+	// Events — chat
+	const chatForm = document.getElementById('chatForm');
+	const messageInput = document.getElementById('messageInput');
+	if (chatForm) {
+		chatForm.onsubmit = async (e) => {
+			e.preventDefault();
+			const input = document.getElementById('messageInput');
+			const msg = input && input.value.trim();
+			if (!msg || chatLoading) return;
+			ensureActiveSession();
+			addMsg(msg, 'user');
+			input.value = '';
+			await sendChat(msg);
+		};
+	}
+	if (messageInput) {
+		messageInput.addEventListener('keydown', (e) => {
+			if (e.key === 'Enter' && !e.shiftKey) {
+				e.preventDefault();
+				if (chatForm && !chatLoading) chatForm.requestSubmit();
+			}
+		});
+	}
+	const newChatBtn = document.getElementById('newChatBtn');
+	if (newChatBtn) newChatBtn.addEventListener('click', () => newChatSession());
+
+	document.getElementById('fileInput').onchange = async (e)=>{ const f = e.target.files[0]; if (f) { ensureActiveSession(); addMsg(`Summarize file: ${f.name}`, 'user'); await summarizeFile(f); } };
+	const exportBtnEl = document.getElementById('exportBtn');
+	if (exportBtnEl) exportBtnEl.onclick = exportConversation;
 	document.getElementById('startQuizBtn').onclick = startQuiz;
 	// document.getElementById('submitQuizBtn').onclick = submitQuiz;
 
@@ -1276,9 +1485,13 @@ document.addEventListener("DOMContentLoaded", () => {
 	if (cs.cheatBtn) cs.cheatBtn.onclick = csCheat;
 
 	// ===== INITIALIZE APP =====
+	sessions = loadSessionsFromStorage();
 	setupVoice();
 	fetchProfile();
-	loadSuggestions();
+	wireEmptyStateChips();
+	setupChatSidebarToggle();
+	renderChatSidebar();
+	syncChatUI();
 	loadColleges().then(loadSubjects);
 	setupSubjectSearch();
 })();

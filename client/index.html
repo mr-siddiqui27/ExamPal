@@ -4,19 +4,26 @@
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>ExamPal - AI Exam Preparation</title>
-	<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' ry='6' fill='%230052ff'/%3E%3Ctext x='50%25' y='56%25' font-family='Arial' font-size='16' text-anchor='middle' fill='white'%3EE%3C/text%3E%3C/svg%3E">
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+	<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' ry='8' fill='%233B82F6'/%3E%3Ctext x='50%25' y='56%25' font-family='Arial' font-size='16' text-anchor='middle' fill='white'%3EE%3C/text%3E%3C/svg%3E">
 	<link rel="stylesheet" href="/web/styles.css" />
 </head>
 <body>
 	<!-- Main Navbar -->
 	<nav class="main-navbar" id="mainNavbar">
 		<div class="navbar-container">
+			<a href="#" class="navbar-brand" id="brandHome" aria-label="ExamPal home">
+				<span class="navbar-brand-mark">E</span>
+				<span class="navbar-brand-text">ExamPal</span>
+			</a>
 			<div class="navbar-left">
-				<button class="nav-item" id="navHome" data-section="home">
+				<button class="nav-item active" id="navHome" data-section="home">
 					<span class="nav-icon">🏠</span>
 					<span class="nav-text">Home</span>
 				</button>
-				<button class="nav-item active" id="navChat" data-section="chat">
+				<button class="nav-item" id="navChat" data-section="chat">
 					<span class="nav-icon">💬</span>
 					<span class="nav-text">AI Chatbot</span>
 					<span class="nav-badge hidden" id="chatBadge">1</span>
@@ -73,28 +80,36 @@
 	<section class="welcome-page" id="welcomePage">
 		<div class="hero-section">
 			<div class="hero-content">
-				<h1 class="hero-heading">ExamPal – AI Exam Preparation</h1>
-				<h2 class="hero-subheading">Master Your College Exams with Instant AI Guidance</h2>
-				<div class="hero-description">
-					<p>Your personal AI tutor available 24/7</p>
-					<p>Instant doubt solving in Hindi & English</p>
-					<p>Syllabus-aligned quizzes for your college</p>
+				<p class="hero-eyebrow">AI-powered exam prep</p>
+				<h1 class="hero-heading">ExamPal — smart preparation for serious students</h1>
+				<h2 class="hero-subheading">Clear doubts, practice quizzes, and stay aligned with your syllabus—whenever you need it.</h2>
+				<ul class="hero-features" aria-label="Key features">
+					<li><span class="hero-feature-icon" aria-hidden="true">✓</span> 24/7 AI tutor</li>
+					<li><span class="hero-feature-icon" aria-hidden="true">✓</span> Hindi & English support</li>
+					<li><span class="hero-feature-icon" aria-hidden="true">✓</span> College & syllabus aware</li>
+				</ul>
+				<div class="hero-cta-row">
+					<button type="button" class="cta-button" id="getStartedBtn">Open AI chat</button>
+					<span class="hero-cta-note">No signup required to try</span>
 				</div>
-				<button class="cta-button" id="getStartedBtn">Get Started with AI Chatbot</button>
 			</div>
 			<div class="hero-visual">
-				<div class="hero-illustration">
-					<div class="illustration-item">🤖</div>
-					<div class="illustration-item">📚</div>
-					<div class="illustration-item">🎓</div>
+				<div class="hero-card hero-card-primary">
+					<span class="hero-card-label">Assistant</span>
+					<p class="hero-card-text">“Explain this unit for my upcoming paper…”</p>
 				</div>
+				<div class="hero-card hero-card-secondary">
+					<span class="hero-card-label">Quiz</span>
+					<p class="hero-card-text">Adaptive practice · timed mode</p>
+				</div>
+				<div class="hero-glow" aria-hidden="true"></div>
 			</div>
 		</div>
 		
 		<!-- Footer (Only on Welcome Page) -->
 		<footer class="main-footer">
 			<div class="footer-content">
-				<p>&copy; 2025 ExamPal | <a href="#" class="footer-link">Privacy Policy</a> | <a href="#" class="footer-link">Terms of Service</a></p>
+				<p>&copy; 2026 ExamPal | <a href="#" class="footer-link">Privacy Policy</a> | <a href="#" class="footer-link">Terms of Service</a></p>
 				<p>Developed by Students of BBD University CSE | Contact: <a href="mailto:help@exampal" class="footer-link">exampal@gmail.com</a></p>
 				<p>Made for AKTU & BBD University Students</p>
 			</div>
@@ -104,11 +119,15 @@
 	<!-- Main App (Hidden Initially) -->
 	<section class="main-app hidden" id="mainApp">
 		<header class="app-header">
-			<h1>ExamPal AI Assistant</h1>
-			<div class="status">
-				<span id="statusText">Ready</span>
+			<div class="app-header-title">
+				<span class="app-header-mark" aria-hidden="true">E</span>
+				<div>
+					<h1>ExamPal Assistant</h1>
+					<p class="app-header-sub">AI Study Assistant</p>
+				</div>
 			</div>
 		</header>
+		<span id="statusText" class="hidden" aria-live="polite"></span>
 		
   
 
@@ -120,36 +139,65 @@
 		<section class="tab-content">
 			<!-- AI Chatbot Tab -->
 			<div id="tabContentChat" class="tab-panel active">
-				<div class="chat">
-					<!-- Scrollable Messages Container -->
-					<div class="messages-container">
-						<div id="messages" class="messages"></div>
-						<div id="typing" class="typing hidden">ExamPal is typing...</div>
-						<div id="followups" class="followups"></div>
-					</div>
-					
-					<!-- Fixed Bottom Area (Suggestions + Input) -->
-					<div class="chat-bottom-fixed">
-						<!-- Suggestions Bar (Horizontal Scrollable Pills) -->
-						<div id="suggestionsBar" class="suggestions-bar">
-							<div id="suggestions" class="suggestions-scroll"></div>
+				<div class="chat-layout" id="chatLayout">
+					<div class="chat-sidebar-backdrop" id="chatSidebarBackdrop" aria-hidden="true" tabindex="-1"></div>
+					<aside class="chat-sidebar" id="chatSidebar" aria-label="Chat history">
+						<div class="chat-sidebar-mobile-bar">
+							<button type="button" class="chat-sidebar-close" id="chatSidebarClose" aria-label="Close menu">×</button>
 						</div>
-						
-						<!-- Input Form -->
-						<form id="chatForm" class="chat-input" autocomplete="off">
-							<div class="input-wrapper">
-								<input id="messageInput" type="text" placeholder="Ask anything for your exam prep..." />
-								<div class="input-actions">
-									<button type="button" id="voiceBtn" class="btn icon" title="Voice input">🎤</button>
-									<label class="btn icon" title="Upload file">
-										📄<input id="fileInput" type="file" accept=".pdf,.doc,.docx,.txt" hidden />
-									</label>
-									<button type="submit" class="btn primary">Send</button>
-									<button type="button" id="exportBtn" class="btn export-btn" title="Export conversation">Export</button>
+						<button type="button" class="chat-sidebar-new" id="newChatBtn">New Chat</button>
+						<div class="chat-sidebar-recent">
+							<div class="chat-sidebar-heading">Recent Chats</div>
+							<div class="chat-history-group" data-period="today">
+								<div class="chat-history-label">Today</div>
+								<ul class="chat-history-list" id="chatHistoryToday" aria-label="Today"></ul>
+							</div>
+							<div class="chat-history-group" data-period="yesterday">
+								<div class="chat-history-label">Yesterday</div>
+								<ul class="chat-history-list" id="chatHistoryYesterday" aria-label="Yesterday"></ul>
+							</div>
+							<div class="chat-history-group" data-period="older">
+								<div class="chat-history-label">Older</div>
+								<ul class="chat-history-list" id="chatHistoryOlder" aria-label="Older"></ul>
+							</div>
+						</div>
+						<button type="button" class="chat-sidebar-export" id="exportBtn">Export conversation</button>
+					</aside>
+					<div class="chat-main">
+						<div class="chat-main-toolbar">
+							<button type="button" class="chat-sidebar-toggle" id="chatSidebarToggle" aria-label="Open menu" aria-expanded="false" aria-controls="chatSidebar">☰</button>
+						</div>
+						<div class="chat-panel">
+							<div class="messages-container">
+								<div id="chatEmptyState" class="chat-empty-state">
+									<p class="chat-empty-title">What do you want to learn today?</p>
+									<div class="chat-empty-chips" id="chatEmptyChips">
+										<button type="button" class="suggestion-chip" data-prompt="Explain a concept">Explain a concept</button>
+										<button type="button" class="suggestion-chip" data-prompt="Summarize a topic">Summarize a topic</button>
+										<button type="button" class="suggestion-chip" data-prompt="Give examples">Give examples</button>
+									</div>
+								</div>
+								<div id="messages" class="messages"></div>
+								<div id="typing" class="typing-indicator hidden" aria-hidden="true">
+									<span class="typing-dot"></span>
+									<span class="typing-dot"></span>
+									<span class="typing-dot"></span>
 								</div>
 							</div>
-							
-						</form>
+							<div class="chat-bottom-fixed">
+								<form id="chatForm" class="chat-input" autocomplete="off">
+									<div class="input-wrapper chat-input-row">
+										<button type="button" id="voiceBtn" class="btn chat-input-icon" title="Voice input" aria-label="Voice input">🎤</button>
+										<label class="btn chat-input-icon" title="Attach file" aria-label="Attach file">
+											📄
+											<input id="fileInput" type="file" accept=".pdf,.doc,.docx,.txt" hidden />
+										</label>
+										<input id="messageInput" type="text" placeholder="Message…" autocomplete="off" />
+										<button type="submit" class="btn chat-send-btn" id="chatSendBtn" aria-label="Send">Send</button>
+									</div>
+								</form>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -207,6 +255,15 @@
 					<div class="cs-right">
 						<div id="csOutput" class="cs-output"></div>
 					</div>
+				</div>
+			</div>
+
+			<!-- Study Resources Tab -->
+			<div id="tabContentResources" class="tab-panel">
+				<div class="resources-placeholder">
+					<h2>📘 Study Resources</h2>
+					<p>Study Notes, Textbooks, PYQs, Assignments, and Video Lectures will be available here soon.</p>
+					<p class="resources-muted">Check back later for syllabus-aligned content for AKTU & BBD University.</p>
 				</div>
 			</div>
 

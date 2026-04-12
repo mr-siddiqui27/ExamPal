@@ -12,7 +12,7 @@ module.exports = {
   
   // Google AI (Gemini) Configuration
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || 'your_gemini_api_key_here',
-  GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
+  GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
   GEMINI_MAX_TOKENS: parseInt(process.env.GEMINI_MAX_TOKENS) || 1000,
   GEMINI_TEMPERATURE: parseFloat(process.env.GEMINI_TEMPERATURE) || 0.7,
   

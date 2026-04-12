@@ -1,3 +1,12 @@
+const path = require('path');
+// Ensure env is loaded (in case server was started with different cwd)
+require('dotenv').config({ path: path.join(__dirname, '..', 'config.env') });
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
+const config = require('../config');
+const apiKey = process.env.GEMINI_API_KEY || config.GEMINI_API_KEY;
+const hasGeminiConfig = Boolean(apiKey && apiKey !== 'your_gemini_api_key_here');
+
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const { body, query, validationResult } = require('express-validator');
@@ -15,9 +24,8 @@ const limiter = rateLimit({
   legacyHeaders: false
 });
 
-const hasGeminiConfig = Boolean(process.env.GEMINI_API_KEY);
-const modelId = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-const genAI = hasGeminiConfig ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
+const modelId = process.env.GEMINI_MODEL || config.GEMINI_MODEL || 'gemini-2.5-flash';
+const genAI = hasGeminiConfig ? new GoogleGenerativeAI(apiKey) : null;
 if (!hasGeminiConfig) {
   console.warn('⚠️  GEMINI_API_KEY not set. AI extended endpoints will return fallback responses.');
 }
@@ -37,17 +45,27 @@ async function callGemini(prompt, opts = {}) {
   if (!genAI) {
     return '[AI unavailable] Configure GEMINI_API_KEY to enable AI generated responses.';
   }
-  try {
-    const model = genAI.getGenerativeModel({ model: modelId, generationConfig: {
-      maxOutputTokens: parseInt(process.env.GEMINI_MAX_TOKENS) || 8000,
-      temperature: parseFloat(process.env.GEMINI_TEMPERATURE) || 0.7
-    }});
-    const result = await model.generateContent(prompt);
-    return result.response?.text?.() || '';
-  } catch (err) {
-    console.error('Gemini error:', err.message);
-    return '[AI unavailable] Here is a brief outline to help you proceed manually.';
+  const fallbacks = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash-lite'];
+  const modelIds = [modelId, ...fallbacks].filter((id, i, a) => a.indexOf(id) === i);
+  for (const mid of modelIds) {
+    try {
+      const model = genAI.getGenerativeModel({ model: mid, generationConfig: {
+        maxOutputTokens: parseInt(process.env.GEMINI_MAX_TOKENS) || 8000,
+        temperature: parseFloat(process.env.GEMINI_TEMPERATURE) || 0.7
+      }});
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      return text || '';
+    } catch (err) {
+      console.error(`Gemini (${mid}) error:`, err.message);
+      if (mid === modelIds[modelIds.length - 1]) {
+        console.error('Gemini API connection failed. Check GEMINI_API_KEY and model availability.');
+        return '[AI unavailable] Gemini API connection failed. Please check your API key and try again.';
+      }
+    }
   }
+  return '[AI unavailable] Could not reach Gemini API.';
 }
 
 // POST /api/ai/explain
@@ -77,6 +95,9 @@ router.post('/quiz', limiter, optionalAuth, [
   const prompt = `Generate ${count} ${difficulty} MCQ questions in ${subject}${topic ? ' on ' + topic : ''}.
 Each item: Question, Options A-D, Correct Answer, Explanation. Return as plain text list.`;
   const text = await callGemini(prompt);
+  if (typeof text === 'string' && text.startsWith('[AI unavailable]')) {
+    return res.status(503).json({ success: false, error: text.replace(/^\[AI unavailable\]\s*/, '').trim() });
+  }
   try { await AIInteraction.create({ user: req.user?._id, sessionId: Date.now().toString(), queryType: 'quiz', context: { subject }, prompt, response: text }); } catch (e) {}
   res.json({ success: true, data: { questions: text } });
 });

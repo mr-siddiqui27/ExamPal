@@ -1,3 +1,8 @@
+const path = require('path');
+// Ensure env is loaded (in case server was started with different cwd)
+require('dotenv').config({ path: path.join(__dirname, '..', 'config.env') });
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
@@ -5,18 +10,20 @@ const { optionalAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Initialize Gemini AI (optional)
-const hasGeminiConfig = Boolean(process.env.GEMINI_API_KEY);
+// Initialize Gemini AI (optional) - use config as fallback
+const config = require('../config');
+const apiKey = process.env.GEMINI_API_KEY || config.GEMINI_API_KEY;
+const hasGeminiConfig = Boolean(apiKey && apiKey !== 'your_gemini_api_key_here');
 let model = null;
 
 if (hasGeminiConfig) {
   try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const genAI = new GoogleGenerativeAI(apiKey);
     model = genAI.getGenerativeModel({
-      model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+      model: process.env.GEMINI_MODEL || config.GEMINI_MODEL || "gemini-2.5-flash",
       generationConfig: {
-        maxOutputTokens: parseInt(process.env.GEMINI_MAX_TOKENS) || 8000,
-        temperature: parseFloat(process.env.GEMINI_TEMPERATURE) || 0.7,
+        maxOutputTokens: parseInt(process.env.GEMINI_MAX_TOKENS || config.GEMINI_MAX_TOKENS) || 8000,
+        temperature: parseFloat(process.env.GEMINI_TEMPERATURE || config.GEMINI_TEMPERATURE) || 0.7,
       }
     });
   } catch (initError) {
@@ -58,21 +65,42 @@ function buildFallbackResponse(message = '') {
   ].join('\n');
 }
 
-// Test Gemini API connection
+// Test Gemini API connection (try primary model, then fallbacks - use current model IDs, not deprecated 1.5/pro)
+const GEMINI_FALLBACK_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash-lite'];
 async function testGeminiConnection() {
-  if (!model) {
+  const primary = (process.env.GEMINI_MODEL || config.GEMINI_MODEL || 'gemini-2.5-flash').split(',').map(s => s.trim()).filter(Boolean);
+  const toTry = [...primary, ...GEMINI_FALLBACK_MODELS];
+  const seen = new Set();
+  const unique = toTry.filter(id => { const ok = !seen.has(id); seen.add(id); return ok; });
+
+  const key = process.env.GEMINI_API_KEY || config.GEMINI_API_KEY;
+  if (!key || key === 'your_gemini_api_key_here') {
+    console.warn('⚠️  GEMINI_API_KEY not set. AI features disabled.');
     return false;
   }
-  try {
-    const result = await model.generateContent("Hello");
-    const response = await result.response;
-    const text = response.text();
-    console.log('✅ Gemini API connection successful');
-    return true;
-  } catch (error) {
-    console.error('❌ Gemini API connection failed:', error.message);
-    return false;
+  const genAI = new (require('@google/generative-ai').GoogleGenerativeAI)(key);
+  for (const mid of unique) {
+    try {
+      const testModel = genAI.getGenerativeModel({ model: mid, generationConfig: { maxOutputTokens: 100 } });
+      const result = await testModel.generateContent('Say OK');
+      const response = await result.response;
+      const text = response.text();
+      console.log('✅ Gemini API connection successful (model: ' + mid + ')');
+      model = genAI.getGenerativeModel({
+        model: mid,
+        generationConfig: {
+          maxOutputTokens: parseInt(process.env.GEMINI_MAX_TOKENS || config.GEMINI_MAX_TOKENS) || 8000,
+          temperature: parseFloat(process.env.GEMINI_TEMPERATURE || config.GEMINI_TEMPERATURE) || 0.7,
+        }
+      });
+      return true;
+    } catch (error) {
+      console.warn('⚠️  Gemini model "' + mid + '" failed: ' + error.message);
+    }
   }
+  model = null;
+  console.error('❌ Gemini API connection failed. Check GEMINI_API_KEY and network. Try GEMINI_MODEL=gemini-2.5-flash in config.env');
+  return false;
 }
 
 // Test connection on startup
