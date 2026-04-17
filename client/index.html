@@ -14,66 +14,62 @@
 	<!-- Main Navbar -->
 	<nav class="main-navbar" id="mainNavbar">
 		<div class="navbar-container">
+			<button class="hamburger-menu" id="hamburgerMenu" aria-label="Open navigation menu" aria-controls="mobileNavMenu" aria-expanded="false">
+				<span>☰</span>
+			</button>
 			<a href="#" class="navbar-brand" id="brandHome" aria-label="ExamPal home">
 				<span class="navbar-brand-mark">E</span>
 				<span class="navbar-brand-text">ExamPal</span>
 			</a>
-			<div class="navbar-left">
+			<div class="navbar-center">
 				<button class="nav-item active" id="navHome" data-section="home">
-					<span class="nav-icon">🏠</span>
 					<span class="nav-text">Home</span>
 				</button>
 				<button class="nav-item" id="navChat" data-section="chat">
-					<span class="nav-icon">💬</span>
-					<span class="nav-text">AI Chatbot</span>
-					<span class="nav-badge hidden" id="chatBadge">1</span>
+					<span class="nav-text">Chat</span>
 				</button>
 				<button class="nav-item" id="navCollege" data-section="college">
-					<span class="nav-icon">🏫</span>
-					<span class="nav-text">College-Specific AI</span>
+					<span class="nav-text">College AI</span>
 				</button>
 				<button class="nav-item" id="navQuiz" data-section="quiz">
-					<span class="nav-icon">❓</span>
-					<span class="nav-text">Quiz Generator</span>
+					<span class="nav-text">Quiz</span>
 				</button>
-				<div class="nav-item-dropdown" id="navResourcesDropdown">
-					<button class="nav-item" id="navResources" data-section="resources">
-						<span class="nav-icon">📘</span>
-						<span class="nav-text">Study Resources</span>
-						<span class="dropdown-arrow">▼</span>
-					</button>
-					<div class="dropdown-menu" id="resourcesDropdown">
-						<a href="#" class="dropdown-item" data-resource="notes">Study Notes</a>
-						<a href="#" class="dropdown-item" data-resource="textbooks">Textbooks</a>
-						<a href="#" class="dropdown-item" data-resource="pyqs">Previous Year Questions (PYQs)</a>
-						<a href="#" class="dropdown-item" data-resource="assignments">Assignments</a>
-						<a href="#" class="dropdown-item" data-resource="videos">Video Lectures</a>
-					</div>
-				</div>
-				<button class="nav-item" id="navHelp" data-section="help">
-					<span class="nav-icon">❔</span>
-					<span class="nav-text">Help & Support</span>
+				<button class="nav-item" id="navResources" data-section="resources">
+					<span class="nav-text">Resources</span>
 				</button>
 			</div>
 			<div class="navbar-right">
 				<div class="nav-item-dropdown" id="navProfileDropdown">
-					<button class="nav-item" id="navProfile" title="Profile">
-						<span class="nav-icon">👤</span>
-						<span class="nav-text">Profile</span>
+					<button class="nav-item nav-profile-trigger" id="navProfile" title="Profile" aria-label="Open profile menu">
+						<span class="nav-avatar" aria-hidden="true">A</span>
 						<span class="dropdown-arrow">▼</span>
 					</button>
 					<div class="dropdown-menu" id="profileDropdown">
 						<a href="#" class="dropdown-item" id="profileSignIn">Sign In</a>
 						<a href="#" class="dropdown-item" id="profileDashboard">Performance Dashboard</a>
 						<a href="#" class="dropdown-item" id="profileSettings">User Settings</a>
+						<a href="#" class="dropdown-item" id="profileHelp">Help &amp; Support</a>
 						<a href="#" class="dropdown-item" id="profileLogout" style="display:none;">Logout</a>
 					</div>
 				</div>
 			</div>
-			<button class="hamburger-menu" id="hamburgerMenu">
-				<span>☰</span>
-			</button>
 		</div>
+		<div class="mobile-nav-backdrop" id="mobileNavBackdrop" aria-hidden="true"></div>
+		<aside class="mobile-nav-menu" id="mobileNavMenu" aria-hidden="true">
+			<div class="mobile-nav-header">
+				<span class="mobile-nav-title">Menu</span>
+				<button type="button" class="mobile-nav-close" id="mobileNavClose" aria-label="Close menu">×</button>
+			</div>
+			<div class="mobile-nav-links">
+				<button class="mobile-nav-item" id="mobileNavHome" data-section="home">Home</button>
+				<button class="mobile-nav-item" id="mobileNavChat" data-section="chat">Chat</button>
+				<button class="mobile-nav-item" id="mobileNavCollege" data-section="college">College AI</button>
+				<button class="mobile-nav-item" id="mobileNavQuiz" data-section="quiz">Quiz</button>
+				<button class="mobile-nav-item" id="mobileNavResources" data-section="resources">Resources</button>
+				<button class="mobile-nav-item" id="mobileNavProfile">Profile</button>
+				<button class="mobile-nav-item" id="mobileNavHelp">Help &amp; Support</button>
+			</div>
+		</aside>
 	</nav>
 
 	<!-- Welcome Page / Hero Section -->

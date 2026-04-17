@@ -4,8 +4,11 @@ document.addEventListener("DOMContentLoaded", () => {
 	const mainApp = document.getElementById('mainApp');
 	const getStartedBtn = document.getElementById('getStartedBtn');
 	const hamburgerMenu = document.getElementById('hamburgerMenu');
-	const navbarLeft = document.querySelector('.navbar-left');
-	const navbarRight = document.querySelector('.navbar-right');
+	const mainNavbar = document.getElementById('mainNavbar');
+	const mobileNavBackdrop = document.getElementById('mobileNavBackdrop');
+	const mobileNavClose = document.getElementById('mobileNavClose');
+	const mobileNavProfile = document.getElementById('mobileNavProfile');
+	const mobileNavHelp = document.getElementById('mobileNavHelp');
 	
 	// Brand → same as Home (welcome page when in app)
 	const brandHome = document.getElementById('brandHome');
@@ -44,27 +47,72 @@ document.addEventListener("DOMContentLoaded", () => {
 			}, 500);
 		});
 	}
-	
-	// Hamburger Menu Toggle (Mobile)
-	if (hamburgerMenu) {
-		hamburgerMenu.addEventListener('click', () => {
-			navbarLeft.classList.toggle('active');
-			navbarRight.classList.toggle('active');
+
+	// Dropdown + mobile menu functionality
+	const profileDropdown = document.getElementById('navProfileDropdown');
+	const profileHelp = document.getElementById('profileHelp');
+	const NAV_MOBILE_BREAKPOINT = 768;
+	const isMobileViewport = () => window.innerWidth <= NAV_MOBILE_BREAKPOINT;
+	function closeMobileMenu() {
+		mainNavbar?.classList.remove('mobile-nav-open');
+		hamburgerMenu?.setAttribute('aria-expanded', 'false');
+		document.getElementById('mobileNavMenu')?.setAttribute('aria-hidden', 'true');
+		mobileNavBackdrop?.setAttribute('aria-hidden', 'true');
+	}
+	function openMobileMenu() {
+		mainNavbar?.classList.add('mobile-nav-open');
+		hamburgerMenu?.setAttribute('aria-expanded', 'true');
+		document.getElementById('mobileNavMenu')?.setAttribute('aria-hidden', 'false');
+		mobileNavBackdrop?.setAttribute('aria-hidden', 'false');
+	}
+	function updateActiveNav(section) {
+		document.querySelectorAll('[data-section]').forEach((nav) => {
+			nav.classList.toggle('active', nav.getAttribute('data-section') === section);
 		});
 	}
-	
-	// Dropdown Functionality
-	const profileDropdown = document.getElementById('navProfileDropdown');
-	const resourcesDropdown = document.getElementById('navResourcesDropdown');
+	function navigateToSection(section) {
+		updateActiveNav(section);
+		profileDropdown?.classList.remove('active');
+		if (isMobileViewport()) closeMobileMenu();
+
+		if (section === 'home') {
+			mainApp.style.transition = 'opacity 0.5s ease-out';
+			mainApp.style.opacity = '0';
+			setTimeout(() => {
+				mainApp.classList.add('hidden');
+				welcomePage.classList.remove('hidden');
+				welcomePage.style.opacity = '0';
+				welcomePage.style.transform = 'translateY(20px)';
+				welcomePage.style.transition = 'opacity 0.5s ease-in, transform 0.5s ease-in';
+				setTimeout(() => {
+					welcomePage.style.opacity = '1';
+					welcomePage.style.transform = 'translateY(0)';
+				}, 50);
+			}, 500);
+			return;
+		}
+
+		const tabSwitchMap = {
+			chat: 'chat',
+			college: 'college',
+			quiz: 'quiz',
+			resources: 'resources'
+		};
+		const tabName = tabSwitchMap[section];
+		if (!tabName) return;
+		if (welcomePage && !welcomePage.classList.contains('hidden')) {
+			getStartedBtn.click();
+			if (tabName !== 'chat') setTimeout(() => switchTab(tabName), 600);
+		} else {
+			switchTab(tabName);
+		}
+	}
 	
 	// Profile Dropdown
 	if (profileDropdown) {
 		const profileBtn = profileDropdown.querySelector('.nav-item');
 		profileBtn.addEventListener('click', (e) => {
 			e.stopPropagation();
-			// Close resources dropdown if open
-			resourcesDropdown?.classList.remove('active');
-			// Toggle profile dropdown
 			profileDropdown.classList.toggle('active');
 		});
 		
@@ -73,6 +121,11 @@ document.addEventListener("DOMContentLoaded", () => {
 		const profileDashboard = document.getElementById('profileDashboard');
 		const profileSettings = document.getElementById('profileSettings');
 		const profileLogout = document.getElementById('profileLogout');
+		const showHelpAlert = (e) => {
+			e.preventDefault();
+			alert('Help & Support coming soon!');
+			profileDropdown.classList.remove('active');
+		};
 		
 		if (profileSignIn) {
 			profileSignIn.addEventListener('click', (e) => {
@@ -105,148 +158,60 @@ document.addEventListener("DOMContentLoaded", () => {
 				profileDropdown.classList.remove('active');
 			});
 		}
+		if (profileHelp) {
+			profileHelp.addEventListener('click', showHelpAlert);
+		}
 	}
-	
-	// Study Resources Dropdown
-	if (resourcesDropdown) {
-		const resourcesBtn = resourcesDropdown.querySelector('.nav-item');
-		resourcesBtn.addEventListener('click', (e) => {
+
+	if (hamburgerMenu) {
+		hamburgerMenu.addEventListener('click', (e) => {
 			e.stopPropagation();
-			// Close profile dropdown if open
-			profileDropdown?.classList.remove('active');
-			// Toggle resources dropdown
-			resourcesDropdown.classList.toggle('active');
-		});
-		
-		// Resources dropdown items - show Study Resources page instead of popup
-		const resourceItems = resourcesDropdown.querySelectorAll('.dropdown-item');
-		resourceItems.forEach(item => {
-			item.addEventListener('click', (e) => {
-				e.preventDefault();
-				resourcesDropdown.classList.remove('active');
-				// Show main app and go to Study Resources tab (no alert)
-				const welcomePage = document.getElementById('welcomePage');
-				const mainApp = document.getElementById('mainApp');
-				const getStartedBtn = document.getElementById('getStartedBtn');
-				if (mainApp && mainApp.classList.contains('hidden') && getStartedBtn) {
-					getStartedBtn.click();
-					setTimeout(() => switchTab('resources'), 600);
-				} else {
-					switchTab('resources');
-				}
-				// Update navbar active to Study Resources
-				document.querySelectorAll('.nav-item[data-section]').forEach(nav => nav.classList.remove('active'));
-				const navResources = document.getElementById('navResources');
-				if (navResources) navResources.classList.add('active');
-			});
+			if (mainNavbar?.classList.contains('mobile-nav-open')) closeMobileMenu();
+			else openMobileMenu();
 		});
 	}
-	
-	// Close dropdowns when clicking outside
+	mobileNavClose?.addEventListener('click', closeMobileMenu);
+	mobileNavBackdrop?.addEventListener('click', closeMobileMenu);
+	mobileNavProfile?.addEventListener('click', () => {
+		closeMobileMenu();
+		profileDropdown?.classList.add('active');
+	});
+	mobileNavHelp?.addEventListener('click', () => {
+		closeMobileMenu();
+		alert('Help & Support coming soon!');
+	});
+
 	document.addEventListener('click', (e) => {
-		if (!e.target.closest('.nav-item-dropdown')) {
+		if (!e.target.closest('.nav-item-dropdown')) profileDropdown?.classList.remove('active');
+		if (
+			isMobileViewport() &&
+			mainNavbar?.classList.contains('mobile-nav-open') &&
+			!e.target.closest('#mobileNavMenu') &&
+			!e.target.closest('#hamburgerMenu')
+		) {
+			closeMobileMenu();
+		}
+	});
+	document.addEventListener('keydown', (e) => {
+		if (e.key === 'Escape') {
 			profileDropdown?.classList.remove('active');
-			resourcesDropdown?.classList.remove('active');
+			if (mainNavbar?.classList.contains('mobile-nav-open')) closeMobileMenu();
 		}
-		
-		// Close mobile menu when clicking outside
-		if (window.innerWidth <= 768) {
-			if (!e.target.closest('.navbar-container') && 
-				!e.target.closest('.hamburger-menu')) {
-				navbarLeft.classList.remove('active');
-				navbarRight.classList.remove('active');
-			}
-		}
+	});
+	window.addEventListener('resize', () => {
+		if (!isMobileViewport()) closeMobileMenu();
 	});
 	
 	// On page load: ensure Home is selected when welcome page is visible
 	(function setInitialNavState() {
 		const welcomeVisible = welcomePage && !welcomePage.classList.contains('hidden');
-		document.querySelectorAll('.nav-item[data-section]').forEach(nav => nav.classList.remove('active'));
-		const homeBtn = document.getElementById('navHome');
-		const chatBtn = document.getElementById('navChat');
-		if (welcomeVisible && homeBtn) {
-			homeBtn.classList.add('active');
-		} else if (chatBtn) {
-			chatBtn.classList.add('active');
-		}
+		updateActiveNav(welcomeVisible ? 'home' : 'chat');
 	})();
 
 	// Navbar Navigation
-	const navItems = document.querySelectorAll('.nav-item[data-section]');
+	const navItems = document.querySelectorAll('[data-section]');
 	navItems.forEach(item => {
-		item.addEventListener('click', (e) => {
-			// Don't trigger if clicking on dropdown arrow
-			if (e.target.closest('.dropdown-arrow')) return;
-			
-			const section = item.getAttribute('data-section');
-			
-			// Close all dropdowns
-			profileDropdown?.classList.remove('active');
-			resourcesDropdown?.classList.remove('active');
-			
-			// Update active state
-			document.querySelectorAll('.nav-item[data-section]').forEach(nav => nav.classList.remove('active'));
-			item.classList.add('active');
-			
-			// Close mobile menu
-			if (window.innerWidth <= 768) {
-				navbarLeft.classList.remove('active');
-				navbarRight.classList.remove('active');
-			}
-			
-			// Handle navigation
-			if (section === 'home') {
-				// Go back to welcome page
-				mainApp.style.transition = 'opacity 0.5s ease-out';
-				mainApp.style.opacity = '0';
-				setTimeout(() => {
-					mainApp.classList.add('hidden');
-					welcomePage.classList.remove('hidden');
-					welcomePage.style.opacity = '0';
-					welcomePage.style.transform = 'translateY(20px)';
-					welcomePage.style.transition = 'opacity 0.5s ease-in, transform 0.5s ease-in';
-					setTimeout(() => {
-						welcomePage.style.opacity = '1';
-						welcomePage.style.transform = 'translateY(0)';
-					}, 50);
-				}, 500);
-			} else if (section === 'chat') {
-				// Show main app and switch to chat
-				if (welcomePage && !welcomePage.classList.contains('hidden')) {
-					getStartedBtn.click();
-				} else {
-					switchTab('chat');
-				}
-			} else if (section === 'college') {
-				// Show main app and switch to college-specific AI
-				if (welcomePage && !welcomePage.classList.contains('hidden')) {
-					getStartedBtn.click();
-					setTimeout(() => switchTab('college'), 600);
-				} else {
-					switchTab('college');
-				}
-			} else if (section === 'quiz') {
-				// Show main app and switch to quiz
-				if (welcomePage && !welcomePage.classList.contains('hidden')) {
-					getStartedBtn.click();
-					setTimeout(() => switchTab('quiz'), 600);
-				} else {
-					switchTab('quiz');
-				}
-			} else if (section === 'resources') {
-				// Show Study Resources page (no popup)
-				if (welcomePage && !welcomePage.classList.contains('hidden')) {
-					getStartedBtn.click();
-					setTimeout(() => switchTab('resources'), 600);
-				} else {
-					switchTab('resources');
-				}
-			} else {
-				// Other sections (help)
-				alert(`${section.charAt(0).toUpperCase() + section.slice(1)} section coming soon!`);
-			}
-		});
+		item.addEventListener('click', () => navigateToSection(item.getAttribute('data-section')));
 	});
 });
 

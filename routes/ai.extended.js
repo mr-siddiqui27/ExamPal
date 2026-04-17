@@ -3,7 +3,7 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', 'config.env') });
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
-const config = require('../config');
+const config = require('../config/config');
 const apiKey = process.env.GEMINI_API_KEY || config.GEMINI_API_KEY;
 const hasGeminiConfig = Boolean(apiKey && apiKey !== 'your_gemini_api_key_here');
 

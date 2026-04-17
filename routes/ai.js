@@ -11,10 +11,11 @@ const { optionalAuth } = require('../middleware/auth');
 const router = express.Router();
 
 // Initialize Gemini AI (optional) - use config as fallback
-const config = require('../config');
+const config = require('../config/config');
 const apiKey = process.env.GEMINI_API_KEY || config.GEMINI_API_KEY;
 const hasGeminiConfig = Boolean(apiKey && apiKey !== 'your_gemini_api_key_here');
 let model = null;
+const mergedExtendedAiRoutes = require('./ai.extended');
 
 if (hasGeminiConfig) {
   try {
@@ -361,5 +362,8 @@ router.post('/explain-concept', [
     });
   }
 });
+
+// Keep extended AI endpoints available via this single router mount.
+router.use(mergedExtendedAiRoutes);
 
 module.exports = router;

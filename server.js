@@ -20,9 +20,8 @@ const errorHandler = require('./middleware/errorHandler');
 // Import routes
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
-const examRoutes = require('./routes/exams');
+const quizRoutes = require('./routes/quiz');
 const aiRoutes = require('./routes/ai');
-const aiExtendedRoutes = require('./routes/ai.extended');
 const resourceRoutes = require('./routes/resources');
 const progressRoutes = require('./routes/progress');
 const progressQuizRoutes = require('./routes/progress.quiz');
@@ -91,6 +90,9 @@ app.get('/web', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'index.html'));
 });
 
+// Serve static frontend for deployment
+app.use(express.static(path.join(__dirname, 'client')));
+
 // Serve static files from /web path (for CSS, JS, etc.)
 app.use('/web', express.static(path.join(__dirname, 'client'), {
   redirect: false  // Disable automatic redirects
@@ -134,9 +136,8 @@ app.get('/', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/exams', examRoutes);
+app.use('/api/exams', quizRoutes);
 app.use('/api/ai', aiRoutes);
-app.use('/api/ai', aiExtendedRoutes);
 app.use('/api/resources', resourceRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api', progressQuizRoutes);
