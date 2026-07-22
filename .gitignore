@@ -147,3 +147,15 @@ out/
 # Lock files (uncomment if you want to ignore them)
 # package-lock.json
 # yarn.lock
+
+
+
+
+
+# Spring Boot
+spring-backend/target/
+target/
+
+
+# Secrets
+config.env

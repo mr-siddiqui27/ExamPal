@@ -4,8 +4,11 @@
   "description": "AI-powered exam preparation platform backend",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "cd spring-backend && mvn spring-boot:run",
+    "dev": "cd spring-backend && mvn spring-boot:run",
+    "start:node": "node server.js",
+    "dev:node": "nodemon server.js",
+    "build:java": "cd spring-backend && mvn clean package -DskipTests",
     "test": "jest"
   },
   "keywords": [
