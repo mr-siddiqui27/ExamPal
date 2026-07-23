@@ -11,7 +11,7 @@ import java.util.Map;
 @RestController
 public class RootController {
 
-    @GetMapping("/")
+    @GetMapping("/api")
     public ResponseEntity<Map<String, Object>> root() {
         return ResponseEntity.ok(Map.of(
                 "success", true,
