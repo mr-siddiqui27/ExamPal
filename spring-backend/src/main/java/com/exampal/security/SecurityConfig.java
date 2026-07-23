@@ -27,17 +27,16 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/error").permitAll()
                 .requestMatchers(
                         "/",
                         "/api",
                         "/health",
+                        "/error",
+                        "/favicon.ico",
                         "/index.html",
                         "/main.js",
-                        "/styles.css",
-                        "/favicon.ico",
-                        "/**/*.html",
-                        "/**/*.js",
-                        "/**/*.css"
+                        "/styles.css"
                 ).permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/guest").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/colleges", "/api/subjects/**", "/api/modules/**",
